@@ -2,24 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../../../utils/sendResponse";
 import { VendorService } from "../../../service/dashboard";
 import { AppError } from "../../../middleware/errorHanding";
-import { z } from "zod";
-
-const UpdateVendorProfileSchema = z.object({
-  gstin: z.string().optional().nullable(),
-  pan: z.string().optional().nullable(),
-  commission_rate: z.number().min(0, "Commission must be non-negative").optional(),
-  phone: z.string().min(10).max(15, "Phone number must be between 10 and 15 digits"),
-});
-
-const UploadVendorDocumentsSchema = z.object({
-  documents: z.array(
-    z.object({
-      name: z.string().min(1, "Document name is required"),
-      url: z.string().url("Valid URL is required"),
-    })
-  )
-});
-
+import { UpdateVendorProfileSchema, UploadVendorDocumentsSchema } from "../../../validations/dashboard/Vendor/vendorProfile.schema";
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {

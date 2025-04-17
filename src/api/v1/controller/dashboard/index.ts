@@ -1,6 +1,5 @@
 
-export * as VendorAuthController from './VendorAuthController/VendorAuthController';
-export * as AuthController from './AuthController/AuthController';
+export * as VendorAuthController from './VendorController/VendorAuthController';
 export * as VendorController from './VendorController/VendorController';
 export * as VendorBankDetailController from './VendorBankDetailController/VendorBankDetailController';
 export * as VendorWareHouseController from './VendorWareHouseController/VendorWareHouseController';
