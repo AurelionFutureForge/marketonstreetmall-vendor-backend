@@ -70,6 +70,7 @@ const createApp = async (): Promise<Express> => {
       }
     )
   );
+  app.set('trust proxy', false);
 
   // Rate limiting middleware
   const limiter = rateLimit({
