@@ -9,7 +9,7 @@ export async function sendMail(email: string, subject: string, link: string) {
   try {
     // Send the email
     const ans = await resend.emails.send({
-      from: 'kittymagic<no-reply@kitty-magic.com>',
+      from: 'kittymagic<no-reply@market-on-streetMall.com>',
       to: [email],
       subject: subject,
       text: link,
