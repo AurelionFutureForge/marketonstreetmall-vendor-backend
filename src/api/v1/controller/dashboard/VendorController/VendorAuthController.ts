@@ -3,7 +3,7 @@ import { AppError } from "../../../middleware/errorHanding";
 import { EmailPasswordSchema, RefreshTokenSchema, VerifyOtpSchema } from "../../../validations/app";
 import { VendorAuthService } from "../../../service/dashboard";
 import { sendResponse } from "../../../utils/sendResponse";
-import { ChangePasswordSchema, ForgotPasswordSchema, ResetPasswordSchema, VendorRegisterSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
+import { AuthenticatedUserSchema, ChangePasswordSchema, ForgotPasswordSchema, ResetPasswordSchema, VendorRegisterSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
 
 
 declare global {
@@ -88,10 +88,7 @@ export const resetPasswordController = async (req: Request, res: Response, next:
 export const changePasswordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { current_password, new_password } = ChangePasswordSchema.parse(req.body);
-    const vendor_id = req.user?.vendor_id;
-    if (!vendor_id) {
-      throw new AppError("User not authenticated", 401);
-    }
+    const { vendor_id } = AuthenticatedUserSchema.parse(req.user);  
     const response = await VendorAuthService.handleChangePasswordVendor(vendor_id, current_password, new_password);
     sendResponse(res, response.status, response.success, response.message);
   } catch (error) {
