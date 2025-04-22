@@ -32,6 +32,7 @@ export const ChangePasswordSchema = z.object({
 
 export const ForgotPasswordSchema = z.object({
   email: z.string().email("Invalid email format"),
+  origin: z.string().url("Invalid URL format"),
 });
 
 export const RefreshTokenSchema = z.object({

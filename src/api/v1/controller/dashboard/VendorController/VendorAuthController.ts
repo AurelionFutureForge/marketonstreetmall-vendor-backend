@@ -67,8 +67,8 @@ export const refreshTokenController = async (req: Request, res: Response, next: 
 
 export const forgotPasswordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = ForgotPasswordSchema.parse(req.body);
-    const response = await VendorAuthService.handleForgotPasswordVendor(email);
+    const { email,origin } = ForgotPasswordSchema.parse(req.body);
+    const response = await VendorAuthService.handleForgotPasswordVendor(email,origin);
     sendResponse(res, response.status, response.success, response.message, response.data);
   } catch (error) {
     next(error);
