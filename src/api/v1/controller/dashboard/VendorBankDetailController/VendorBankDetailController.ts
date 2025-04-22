@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendResponse } from '../../../utils/sendResponse';
-// import * as BankDetailService from '../../../service/dashboard/bankDetails';
 import { VendorBankDetailService } from "../../../service/dashboard";
 import { AppError } from '../../../middleware/errorHanding';
 import { z } from "zod";
