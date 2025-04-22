@@ -11,6 +11,7 @@ export const getCmsUserByEmailVendor = async (email: string) => {
 
 
 export const handleVendorRegister = async (vendorData: {
+  name: string;
   business_name: string;
   legal_name: string;
   gstin?: string;
@@ -40,6 +41,7 @@ export const handleVendorRegister = async (vendorData: {
 
     const newVendor = await prisma.vendor.create({
       data: {
+        name: vendorData.name,
         business_name: vendorData.business_name,
         legal_name: vendorData.legal_name,
         gstin: vendorData.gstin,
@@ -59,6 +61,7 @@ export const handleVendorRegister = async (vendorData: {
       message: 'Vendor registered successfully',
       data: {
         vendor_id: newVendor.vendor_id,
+        name: newVendor.name,
         business_name: newVendor.business_name,
         email: newVendor.email,
         phone: newVendor.phone,

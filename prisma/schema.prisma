@@ -24,6 +24,7 @@ model CmsUser {
 
 model Vendor {
   vendor_id            String           @id @default(uuid())
+  name                 String
   business_name        String
   legal_name           String
   gstin                String?          @unique

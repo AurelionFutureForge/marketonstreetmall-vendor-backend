@@ -3,6 +3,7 @@ import { z } from "zod";
 
 
 export const VendorRegisterSchema = z.object({
+  name : z.string().min(1, 'Name is required'),
   business_name: z.string().min(1, 'Business name is required'),
   legal_name: z.string().min(1, 'Legal name is required'),
   gstin: z.string().optional(), // Optional but should be valid if present
