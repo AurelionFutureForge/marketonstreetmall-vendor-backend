@@ -9,12 +9,13 @@ export async function sendMail(email: string, subject: string, link: string) {
   try {
     // Send the email
     const ans = await resend.emails.send({
-      from: 'kittymagic<no-reply@market-on-streetMall.com>',
+      from: 'Street Mall <no-reply@streetmallcommerce.com>',
       to: [email],
       subject: subject,
       text: link,
       attachments: [],
     });
+    console.log('Email sent successfully:', ans);
     return { success: true, message: "Mail sent successfully" };
   } catch (error) {
     console.error('Error sending email:', error);

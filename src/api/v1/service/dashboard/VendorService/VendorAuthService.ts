@@ -157,7 +157,7 @@ export const verifyOtp = async (otp_id: string, otp: string) => {
   }
 };
 
-export const handleForgotPasswordVendor = async (email: string) => {
+export const handleForgotPasswordVendor = async (email: string,origin: string) => {
   try {
     const user = await getCmsUserByEmailVendor(email);
     if (!user) {
@@ -179,7 +179,7 @@ export const handleForgotPasswordVendor = async (email: string) => {
       }
     });
 
-    const resetLink = `http://localhost:3000/forget-password?token=${resetToken}`;
+    const resetLink = `${origin}/reset-password/${resetToken}`;
     await sendMail(
       user.email,
       'Reset your password',
