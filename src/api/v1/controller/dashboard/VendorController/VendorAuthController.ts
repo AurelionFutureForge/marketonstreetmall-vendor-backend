@@ -69,7 +69,7 @@ export const forgotPasswordController = async (req: Request, res: Response, next
   try {
     const { email,origin } = ForgotPasswordSchema.parse(req.body);
     const response = await VendorAuthService.handleForgotPasswordVendor(email,origin);
-    sendResponse(res, response.status, response.success, response.message, response.data);
+    sendResponse(res, response.status, response.success, response.message);
   } catch (error) {
     next(error);
   }
