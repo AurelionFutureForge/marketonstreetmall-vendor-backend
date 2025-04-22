@@ -189,8 +189,7 @@ export const handleForgotPasswordVendor = async (email: string,origin: string) =
     return {
       status: 200,
       success: true,
-      message: 'Password reset link sent successfully',
-      data: { reset_token: resetToken }
+      message: 'Password reset link sent successfully'
     };
   } catch (error) {
     throw error;
