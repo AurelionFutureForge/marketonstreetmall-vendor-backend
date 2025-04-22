@@ -161,7 +161,7 @@ export const handleForgotPasswordVendor = async (email: string,origin: string) =
   try {
     const user = await getCmsUserByEmailVendor(email);
     if (!user) {
-      return { status: 404, success: false, message: 'User not found' };
+      return { status: 201, success: false, message: 'User not found' };
     }
 
     const resetToken = jwt.sign(
