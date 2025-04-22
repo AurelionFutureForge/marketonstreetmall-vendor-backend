@@ -1,4 +1,4 @@
-import prisma from 'prisma-client-e0927cad762eeb69c59bae79cd800ee80b7461adc19bab150b560ff44b385830/prismaClient';
+import prisma from '../../../../../../prisma/client/prismaClient';
 import { sendToken } from '../../../utils/sendToken';
 import { sendMail } from '../../../utils/smtpService';
 import jwt from 'jsonwebtoken';

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { VendorWareHouseService } from "../../../service/dashboard";
-import { AppError } from "../../../middleware/errorHanding";
 import { sendResponse } from "../../../utils/sendResponse";
 import { AuthenticatedUserSchema } from '../../../validations/dashboard/Vendor/vendorAuth.schema';
 import { updateWarehouseVerificationSchema, warehouseSchema } from '../../../validations/dashboard/Warehouse/Warehouse.schema';
