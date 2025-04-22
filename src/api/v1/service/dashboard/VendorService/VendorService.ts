@@ -30,18 +30,14 @@ export const updateVendorProfile = async (
   const updatedVendor = await prisma.vendor.update({
     where: { vendor_id: vendorId },
     data: {
+      name: data.name,
       business_name: data.business_name,
       legal_name: data.legal_name,
       gstin: data.gstin || null,
       pan: data.pan || null,
       commission_rate: data.commission_rate ?? 0,
-      email: data.email,
       phone: data.phone,
       updated_at: new Date()
-    },
-    include: {
-      bank_details: true,
-      warehouse: true
     }
   });
 

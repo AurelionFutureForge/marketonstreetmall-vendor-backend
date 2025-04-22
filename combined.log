@@ -228,3 +228,9 @@
 {"level":"info","message":"OPTIONS /v1/dashboard/vendor/profile 204 0.632 ms - 0","timestamp":"2025-04-18T17:43:30.015Z"}
 {"level":"info","message":"GET /v1/dashboard/vendor/profile 201 812.434 ms - 510","timestamp":"2025-04-18T17:43:30.835Z"}
 {"level":"info","message":"GET /v1/dashboard/vendor/profile 201 1031.745 ms - 510","timestamp":"2025-04-18T17:43:35.335Z"}
+{"level":"info","message":"POST /v1/dashboard/vendor/auth/register 422 28.012 ms - 75","timestamp":"2025-04-22T10:38:49.801Z"}
+{"level":"info","message":"POST /v1/dashboard/vendor/auth/register 201 3579.242 ms - 244","timestamp":"2025-04-22T10:39:21.179Z"}
+{"level":"info","message":"POST /v1/dashboard/vendor/auth/login 200 776.273 ms - 674","timestamp":"2025-04-22T10:39:54.035Z"}
+{"level":"info","message":"GET /v1/dashboard/vendor/profile 201 1744.577 ms - 538","timestamp":"2025-04-22T10:40:32.284Z"}
+{"level":"info","message":"PUT /v1/dashboard/vendor/profile 400 2.185 ms - 28","timestamp":"2025-04-22T10:41:28.512Z"}
+{"level":"info","message":"PUT /v1/dashboard/vendor/profile 200 766.947 ms - 502","timestamp":"2025-04-22T10:41:39.987Z"}
