@@ -24,6 +24,27 @@ export const getVendorProfile = async (vendorId: string) => {
   }
 };
 
+export const getVendorUserProfile = async (vendorId: string) => {
+  try {
+    const vendor = await prisma.vendorUser.findUnique({
+      where: { vendor_user_id: vendorId },
+    });
+    if (!vendor) {
+      throw new Error("Vendor not found");
+    }
+
+    return {
+      status: 201,
+      success: true,
+      message: "Vendor details fetched successfully",
+      data: vendor,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 export const updateVendorProfile = async (vendorId: string, data: any) => {
   try {
     const updatedVendor = await prisma.vendor.update({

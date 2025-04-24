@@ -22,6 +22,20 @@ export const getProfile = async (
   }
 };
 
+export const getVendorProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
+    const response = await VendorService.getVendorUserProfile(vendor_id);
+    sendResponse(res, response.status, true, response.message, response.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateVendorProfile = async (
   req: Request,
   res: Response,

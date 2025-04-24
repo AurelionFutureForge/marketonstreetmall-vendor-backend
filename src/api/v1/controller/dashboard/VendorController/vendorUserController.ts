@@ -30,6 +30,7 @@ export const addVendorUserController = async (
     );
   } catch (error) {
     next(error);
+
   }
 };
 

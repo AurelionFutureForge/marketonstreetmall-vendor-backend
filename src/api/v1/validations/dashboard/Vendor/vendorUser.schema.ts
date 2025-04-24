@@ -4,7 +4,6 @@ export const VendorUserSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(["VENDOR_ADMIN", "PRODUCT_ADMIN"]),
 });
 
 export const DeleteVendorUserSchema = z.object({
