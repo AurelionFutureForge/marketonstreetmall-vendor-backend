@@ -30,6 +30,7 @@ export const addVendorUser = async (vendorId: string, userData: any) => {
       data: {
         ...userData,
         vendor_id: vendorId,
+        role: "PRODUCT_ADMIN",
       },
     });
 

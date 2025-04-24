@@ -284,9 +284,18 @@ export const handleChangePasswordVendor = async (
   newPassword: string
 ) => {
   try {
-    const user = await prisma.vendor.findUnique({
+    let user;
+    let role='vendor';
+    user = await prisma.vendor.findUnique({
       where: { vendor_id: vendor_id },
     });
+
+    if(!user){
+      user = await prisma.vendorUser.findUnique({
+        where: { vendor_user_id: vendor_id },
+      });
+      role='vendor_user';
+    }
 
     if (!user) {
       return {
@@ -307,10 +316,17 @@ export const handleChangePasswordVendor = async (
     }
 
     // Update password
-    await prisma.vendor.update({
-      where: { vendor_id: vendor_id },
-      data: { password: newPassword },
-    });
+    if(role==='vendor'){
+      await prisma.vendor.update({
+        where: { vendor_id: vendor_id },
+        data: { password: newPassword },
+      });
+    }else{
+      await prisma.vendorUser.update({
+        where: { vendor_user_id: vendor_id },
+        data: { password: newPassword },
+      });
+    }
 
     return {
       status: 200,
