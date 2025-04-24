@@ -2,13 +2,25 @@ import prisma from "../../../../../../prisma/client/prismaClient";
 
 export const addVendorUser = async (vendorId: string, userData: any) => {
   try {
+    const existingAdminUser = await prisma.vendor.findUnique({
+      where: { email: userData.email },
+    });
+
+    if (existingAdminUser) {
+      return {
+        status: 404,
+        success: false,
+        message: "A user with this email already exists as admin",
+      };
+    }
+
     const existingUser = await prisma.vendorUser.findUnique({
       where: { email: userData.email },
     });
 
     if (existingUser) {
       return {
-        status: 400,
+        status: 404,
         success: false,
         message: "A user with this email already exists",
       };
