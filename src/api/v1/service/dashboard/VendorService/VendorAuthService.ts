@@ -3,8 +3,23 @@ import { sendToken } from "../../../utils/sendToken";
 import { sendMail } from "../../../utils/smtpService";
 import jwt from "jsonwebtoken";
 
+type User = {
+  vendor_id?: string;
+  vendor_user_id?: string;
+  name: string;
+  password: string;
+  email: string;
+  role: string;
+};
+
 export const getCmsUserByEmailVendor = async (email: string) => {
   return await prisma.vendor.findUnique({
+    where: { email },
+  });
+};
+
+export const getCmsUserByEmailVendorUser = async (email: string) => {
+  return await prisma.vendorUser.findUnique({
     where: { email },
   });
 };
@@ -36,7 +51,7 @@ export const handleVendorRegister = async (vendorData: {
 
     if (existingVendor) {
       return {
-        status: 400,
+        status: 404,
         success: false,
         message: "Vendor already exists with given email, phone, GSTIN, or PAN",
       };
@@ -78,7 +93,13 @@ export const handleVendorRegister = async (vendorData: {
 
 export const handleLoginVendor = async (email: string, password: string) => {
   try {
-    const user = await getCmsUserByEmailVendor(email);
+    let user : User | null = null;
+    let role='vendor';
+    user = await getCmsUserByEmailVendorUser(email);
+    if(!user){
+      user = await getCmsUserByEmailVendor(email);
+      role='vendor_admin';
+    }
 
     if (!user) {
       return { status: 404, message: "User not found" };
@@ -91,13 +112,13 @@ export const handleLoginVendor = async (email: string, password: string) => {
 
     // Generate tokens
     const accessToken = jwt.sign(
-      { vendor_id: user.vendor_id, role: user.role },
+      { vendor_id:role==='vendor_admin' ? user.vendor_id : user.vendor_user_id , role: user.role },
       process.env.JWT_SECRET || "access-secret",
       { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
-      { vendor_id: user.vendor_id },
+      { vendor_id: role==='vendor_admin' ? user.vendor_id : user.vendor_user_id  },
       process.env.RESET_TOKEN_SECRET || "refresh-secret",
       { expiresIn: "7d" }
     );
@@ -107,8 +128,8 @@ export const handleLoginVendor = async (email: string, password: string) => {
       message: "Login successful",
       data: {
         user: {
-          vendor_id: user.vendor_id,
-          name: user.legal_name,
+          vendor_id:role==='vendor_admin' ? user.vendor_id : user.vendor_user_id ,
+          name: user.name,
           email: user.email,
           role: user.role,
         },
@@ -132,17 +153,17 @@ export const verifyOtp = async (otp_id: string, otp: string) => {
         relatedCmsUser: true,
       },
     });
-    console.log(storedOtp);
+    
     if (!storedOtp) {
-      return { status: 400, success: false, message: "OTP not found" };
+      return { status: 404, success: false, message: "OTP not found" };
     }
 
     if (storedOtp.otp !== otp) {
-      return { status: 400, success: false, message: "Invalid OTP" };
+      return { status: 401, success: false, message: "Invalid OTP" };
     }
 
     if (new Date() > storedOtp.otp_expiration!) {
-      return { status: 400, success: false, message: "OTP expired" };
+      return { status: 402, success: false, message: "OTP expired" };
     }
 
     if (!storedOtp.relatedCmsUser) {
@@ -230,7 +251,7 @@ export const handleResetPasswordVendor = async (
 
     if (!resetToken) {
       return {
-        status: 400,
+        status: 401,
         success: false,
         message: "Invalid or expired reset token",
       };
@@ -279,7 +300,7 @@ export const handleChangePasswordVendor = async (
     // Verify current password
     if (user.password !== currentPassword) {
       return {
-        status: 400,
+        status: 401,
         success: false,
         message: "Current password is incorrect",
       };
