@@ -45,3 +45,8 @@ export const AuthenticatedUserSchema = z.object({
   role: z.string().optional(),
   cms_user_id: z.string().optional(),
 });
+
+export const TopProductPaginationSchema = z.object({
+  page: z.string().optional().default("1").transform(Number),
+  limit: z.string().optional().default("10").transform(Number),
+});
