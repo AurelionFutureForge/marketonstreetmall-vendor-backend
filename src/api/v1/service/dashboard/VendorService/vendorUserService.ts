@@ -50,25 +50,39 @@ export const addVendorUser = async (vendorId: string, userData: any) => {
   }
 };
 
-export const getAllVendorUsers = async (vendorId: string) => {
+export const getAllVendorUsers = async (page: number = 1, limit: number = 10, vendorId?: string) => {
   try {
-    const users = await prisma.vendorUser.findMany({
-      where: { vendor_id: vendorId },
-      select: {
-        vendor_user_id: true,
-        name: true,
-        email: true,
-        role: true,
-        created_at: true,
+    const skip = (page - 1) * limit;
+    
+    const whereClause = vendorId ? { vendor_id: vendorId } : {};
+    
+    const vendorUsers = await prisma.vendorUser.findMany({
+      where: whereClause,
+      skip,
+      take: limit,
+      orderBy: {
+        created_at: "desc",
       },
-      orderBy: { created_at: "desc" },
     });
 
+    const totalVendorUsers = await prisma.vendorUser.count({
+      where: whereClause,
+    });
+
+    
     return {
       status: 200,
       success: true,
       message: "Vendor users fetched successfully",
-      data: users,
+      data: {
+        vendorUsers,
+        pagination: {
+          total_data: totalVendorUsers,
+          total_pages: Math.ceil(totalVendorUsers / limit),
+          current_page: page,
+          per_page: limit,
+        },
+      },
     };
   } catch (error) {
     throw error;
