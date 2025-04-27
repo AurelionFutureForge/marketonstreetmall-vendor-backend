@@ -10,7 +10,8 @@ export const warehouseSchema = z.object({
   longitude: z.number().optional(),
   contact_person: z.string().optional(),
   contact_phone: z.string().optional(),
-  is_primary: z.boolean().default(false)
+  is_primary: z.boolean().default(false),
+  verification_status: z.enum(['PENDING', 'VERIFIED', 'REJECTED']).optional(),
 });
 
 export const updateWarehouseVerificationSchema = z.object({

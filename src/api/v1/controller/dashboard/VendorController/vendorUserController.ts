@@ -6,7 +6,7 @@ import {
   UpdateVendorUserSchema,
   VendorUserSchema,
 } from "../../../validations/dashboard/Vendor/vendorUser.schema";
-import { AuthenticatedUserSchema,TopProductPaginationSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
+import { AuthenticatedUserSchema, PaginationSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
 
 export const addVendorUserController = async (
   req: Request,
@@ -40,8 +40,8 @@ export const getVendorUsersController = async (
   next: NextFunction
 ) => {
   try {
-    const { vendor_id} = AuthenticatedUserSchema.parse(req.user);
-    const { page, limit } = TopProductPaginationSchema.parse(req.query);
+    const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
+    const { page, limit } = PaginationSchema.parse(req.query);
     const result = await VendorUserService.getAllVendorUsers(page, limit, vendor_id);
     sendResponse(
       res,
