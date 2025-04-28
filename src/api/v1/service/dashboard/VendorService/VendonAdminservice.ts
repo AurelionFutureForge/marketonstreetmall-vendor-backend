@@ -92,8 +92,6 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
             where: { vendor_id },
         });
 
-
-
         if (!vendor) {
             return {
                 status: 404,
@@ -102,19 +100,18 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
             };
         }
 
-    
         const updatedVendor = await prisma.vendor.update({
             where: { vendor_id },
             data: {
-              name: updateData.name,
-              business_name: updateData.business_name,
-              legal_name: updateData.legal_name,
-              gstin: updateData.gstin || null,
-              pan: updateData.pan || null,
-              onboarding_completed: updateData.onboarding_completed || false,
-              commission_rate: updateData.commission_rate ?? 0,
-              phone: updateData.phone,
-              updated_at: new Date(),
+                name: updateData.name,
+                business_name: updateData.business_name,
+                legal_name: updateData.legal_name,
+                gstin: updateData.gstin || null,
+                pan: updateData.pan || null,
+                onboarding_completed: updateData.onboarding_completed || false,
+                commission_rate: updateData.commission_rate ?? 0,
+                phone: updateData.phone,
+                updated_at: new Date(),
             },
             select: {
                 name: true,
@@ -128,7 +125,7 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
                 email: true,
                 vendor_id: true,
             },
-          });
+        });
 
         return {
             status: 200,
@@ -160,27 +157,23 @@ export const deleteVendor = async (vendor_id: string) => {
             };
         }
 
-        // Delete related data first
-        // Delete bank details if exists
+        
         if (vendor.bank_details) {
             await prisma.bankDetail.delete({
                 where: { vendor_id }
             });
         }
 
-        // Delete warehouse if exists
         if (vendor.warehouse) {
             await prisma.warehouse.delete({
                 where: { vendor_id }
             });
         }
 
-        // Delete vendor team members
         await prisma.vendorUser.deleteMany({
             where: { vendor_id }
         });
 
-        // Finally delete the vendor
         await prisma.vendor.delete({
             where: { vendor_id },
         });
@@ -198,80 +191,79 @@ export const deleteVendor = async (vendor_id: string) => {
 
 export const addOrUpdateBankDetails = async (vendorId: string, data: any) => {
     try {
-      const bank = await prisma.bankDetail.upsert({
-        where: { vendor_id: vendorId },
-        update: {
-          account_name: data.account_name,
-          account_number: data.account_number,
-          ifsc_code: data.ifsc_code,
-          bank_name: data.bank_name,
-          branch_name: data.branch_name ?? null,
-          updated_at: new Date(),
-          is_verified: data.is_verified ?? false,
-        },
-        create: {
-          vendor_id: vendorId,
-          account_name: data.account_name,
-          account_number: data.account_number,
-          ifsc_code: data.ifsc_code,
-          bank_name: data.bank_name,
-          branch_name: data.branch_name ?? null,
-          is_verified: data.is_verified ?? false,
-        },
-      });
+        const bank = await prisma.bankDetail.upsert({
+            where: { vendor_id: vendorId },
+            update: {
+                account_name: data.account_name,
+                account_number: data.account_number,
+                ifsc_code: data.ifsc_code,
+                bank_name: data.bank_name,
+                branch_name: data.branch_name ?? null,
+                updated_at: new Date(),
+                is_verified: data.is_verified ?? false,
+            },
+            create: {
+                vendor_id: vendorId,
+                account_name: data.account_name,
+                account_number: data.account_number,
+                ifsc_code: data.ifsc_code,
+                bank_name: data.bank_name,
+                branch_name: data.branch_name ?? null,
+                is_verified: data.is_verified ?? false,
+            },
+        });
   
-      return {
-        status: 201,
-        success: true,
-        message: "Bank details updated successfully",
-        data: bank,
-      };
+        return {
+            status: 201,
+            success: true,
+            message: "Bank details updated successfully",
+            data: bank,
+        };
     } catch (error) {
-      throw error;
+        throw error;
     }
-  };
+};
 
-  export const addOrUpdateWarehouse = async (vendorId: string, data: any) => {
-
+export const addOrUpdateWarehouse = async (vendorId: string, data: any) => {
     try {
-      const warehouse = await prisma.warehouse.upsert({
-        where: { vendor_id: vendorId },
-        update: {
-          address: data.address,
-          city: data.city,
-          state: data.state,
-          country: data.country || "India",
-          pincode: data.pincode,
-          latitude: data.latitude || null,
-          longitude: data.longitude || null,
-          contact_person: data.contact_person || null,
-          contact_phone: data.contact_phone || null,
-          updated_at: new Date(),
-          verification_status: data.verification_status || "PENDING",
-        },
-        create: {
-          vendor_id: vendorId,
-          address: data.address,
-          city: data.city,
-          state: data.state,
-          country: data.country || "India",
-          pincode: data.pincode,
-          latitude: data.latitude || null,
-          longitude: data.longitude || null,
-          contact_person: data.contact_person || null,
-          contact_phone: data.contact_phone || null,
-          verification_status: data.verification_status || "PENDING",
-        }
-      });
+        const warehouse = await prisma.warehouse.upsert({
+            where: { vendor_id: vendorId },
+            update: {
+                address: data.address,
+                city: data.city,
+                state: data.state,
+                country: data.country || "India",
+                pincode: data.pincode,
+                latitude: data.latitude || null,
+                longitude: data.longitude || null,
+                contact_person: data.contact_person || null,
+                contact_phone: data.contact_phone || null,
+                updated_at: new Date(),
+                verification_status: data.verification_status || "PENDING",
+            },
+            create: {
+                vendor_id: vendorId,
+                address: data.address,
+                city: data.city,
+                state: data.state,
+                country: data.country || "India",
+                pincode: data.pincode,
+                latitude: data.latitude || null,
+                longitude: data.longitude || null,
+                contact_person: data.contact_person || null,
+                contact_phone: data.contact_phone || null,
+                verification_status: data.verification_status || "PENDING",
+            }
+        });
   
-      return {
-        status: 201,
-        success: true,
-        message: "Warehouse details updated successfully",
-        data: warehouse,
-      };
+        return {
+            status: 201,
+            success: true,
+            message: "Warehouse details updated successfully",
+            data: warehouse,
+        };
     } catch (error) {
-      throw error;
+        throw error;
     }
-  };
+};
   

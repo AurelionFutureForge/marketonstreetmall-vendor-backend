@@ -6,11 +6,7 @@ import { VendorSuperAdminService, VendorWareHouseService } from "../../../servic
 import { AddOrUpdateBankDetailsSchema } from "../../../validations/dashboard";
 import { warehouseSchema } from "../../../validations/dashboard/Warehouse/Warehouse.schema";
 
-export const getAllVendors = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllVendors = async (req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { page, limit } = PaginationSchema.parse(req.query);
     const response = await VendorSuperAdminService.getAllVendors(page, limit);
@@ -20,11 +16,7 @@ export const getAllVendors = async (
   }
 };
 
-export const getVendorDetails = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getVendorDetails = async (  req: Request,  res: Response, next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.params);
     const response = await VendorSuperAdminService.getVendorDetails(vendor_id);
@@ -34,11 +26,7 @@ export const getVendorDetails = async (
   }
 };
 
-export const updateVendorProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateVendorProfile = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     
     const { vendor_id } = AuthenticatedUserSchema.parse(req.params);
@@ -51,11 +39,7 @@ export const updateVendorProfile = async (
   }
 };
 
-export const deleteVendor = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteVendor = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.params);
     const response = await VendorSuperAdminService.deleteVendor(vendor_id);
