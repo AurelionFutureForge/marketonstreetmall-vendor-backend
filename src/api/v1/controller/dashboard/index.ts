@@ -4,4 +4,6 @@ export * as VendorController from './VendorController/VendorController';
 export * as VendorBankDetailController from './VendorBankDetailController/VendorBankDetailController';
 export * as VendorWareHouseController from './VendorWareHouseController/VendorWareHouseController';
 export * as VendorUserController from './VendorController/vendorUserController';
+export * as SuperAdminVendorController from './superadmin/vendor.controller';
 // export * as ProductController from "./ProductController/ProductController";
+

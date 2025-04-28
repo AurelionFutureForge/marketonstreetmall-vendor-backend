@@ -1,6 +1,5 @@
 import express,{ Router } from 'express';
 import dashboardRouter from './dashboardRouter/dashboardRouter';
-// import dashboardRouter from './dashboardRouter/dashboardRouter';
 
 const apiRouter: Router = express.Router();
 

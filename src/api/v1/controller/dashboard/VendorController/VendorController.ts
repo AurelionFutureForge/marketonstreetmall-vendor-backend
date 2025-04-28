@@ -8,11 +8,7 @@ import {
 } from "../../../validations/dashboard/Vendor/vendorProfile.schema";
 import { AuthenticatedUserSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
 
-export const getProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getProfile = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const response = await VendorService.getVendorProfile(vendor_id);
@@ -22,11 +18,7 @@ export const getProfile = async (
   }
 };
 
-export const getVendorProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getVendorProfile = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const response = await VendorService.getVendorUserProfile(vendor_id);
@@ -36,11 +28,7 @@ export const getVendorProfile = async (
   }
 };
 
-export const updateVendorProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateVendorProfile = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const updateData = UpdateVendorProfileSchema.parse(req.body);
@@ -54,11 +42,7 @@ export const updateVendorProfile = async (
   }
 };
 
-export const uploadVendorDocuments = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const uploadVendorDocuments = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const { documents } = UploadVendorDocumentsSchema.parse(req.body);
@@ -74,11 +58,7 @@ export const uploadVendorDocuments = async (
   }
 };
 
-export const getVendorDocuments = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getVendorDocuments = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const result = await VendorService.getVendorDocuments(vendor_id);

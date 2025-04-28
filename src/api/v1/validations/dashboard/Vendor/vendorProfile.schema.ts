@@ -6,6 +6,7 @@ export const UpdateVendorProfileSchema = z.object({
   legal_name: z.string().optional(),
   gstin: z.string().optional().nullable(),
   pan: z.string().optional().nullable(),
+  onboarding_completed: z.boolean().optional(),
   commission_rate: z
     .number()
     .min(0, "Commission must be non-negative")

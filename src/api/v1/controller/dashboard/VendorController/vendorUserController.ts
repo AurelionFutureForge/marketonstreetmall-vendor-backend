@@ -6,13 +6,9 @@ import {
   UpdateVendorUserSchema,
   VendorUserSchema,
 } from "../../../validations/dashboard/Vendor/vendorUser.schema";
-import { AuthenticatedUserSchema,TopProductPaginationSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
+import { AuthenticatedUserSchema, PaginationSchema } from "../../../validations/dashboard/Vendor/vendorAuth.schema";
 
-export const addVendorUserController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const addVendorUserController = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const validatedData = VendorUserSchema.parse(req.body);
@@ -34,14 +30,10 @@ export const addVendorUserController = async (
   }
 };
 
-export const getVendorUsersController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getVendorUsersController = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
-    const { vendor_id} = AuthenticatedUserSchema.parse(req.user);
-    const { page, limit } = TopProductPaginationSchema.parse(req.query);
+    const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
+    const { page, limit } = PaginationSchema.parse(req.query);
     const result = await VendorUserService.getAllVendorUsers(page, limit, vendor_id);
     sendResponse(
       res,
@@ -55,11 +47,7 @@ export const getVendorUsersController = async (
   }
 };
 
-export const deleteVendorUserController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const deleteVendorUserController = async (  req: Request,  res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const { vendor_user_id } = DeleteVendorUserSchema.parse(req.body);
@@ -74,11 +62,7 @@ export const deleteVendorUserController = async (
   }
 };
 
-export const updateVendorUserController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const updateVendorUserController = async (  req: Request, res: Response,  next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
     const parsedData = UpdateVendorUserSchema.parse(req.body);
