@@ -157,7 +157,6 @@ export const deleteVendor = async (vendor_id: string) => {
             };
         }
 
-        
         if (vendor.bank_details) {
             await prisma.bankDetail.delete({
                 where: { vendor_id }
