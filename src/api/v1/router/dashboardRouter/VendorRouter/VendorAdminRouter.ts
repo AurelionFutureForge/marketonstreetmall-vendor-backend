@@ -6,6 +6,7 @@ const superAdminVendorRouter = Router();
 
 // SuperAdmin Vendor Routes
 superAdminVendorRouter.get('/superadmin/vendor/',SuperAdminVendorController.getAllVendors);
+superAdminVendorRouter.get('/superadmin/vendor/search', SuperAdminVendorController.searchVendors);
 superAdminVendorRouter.post('/superadmin/vendor/', registerController);
 superAdminVendorRouter.get('/superadmin/vendor/:vendor_id', SuperAdminVendorController.getVendorDetails);
 superAdminVendorRouter.put('/superadmin/vendor/:vendor_id', SuperAdminVendorController.updateVendorProfile);

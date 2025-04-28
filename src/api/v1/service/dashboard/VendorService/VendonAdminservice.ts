@@ -265,4 +265,71 @@ export const addOrUpdateWarehouse = async (vendorId: string, data: any) => {
         throw error;
     }
 };
+
+export const searchVendors = async (page: number = 1, limit: number = 10, search?: string, business_type?: string) => {
+    try {
+        const skip = (page - 1) * limit;
+
+        const whereClause: any = {};
+
+        if (business_type) {
+            whereClause.business_type = business_type;
+        }
+
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: search, mode: "insensitive" } },
+                { business_name: { contains: search, mode: "insensitive" } },
+                { vendor_id: { contains: search, mode: "insensitive" } },
+                { email: { contains: search, mode: "insensitive" } },
+                { phone: { contains: search, mode: "insensitive" } },
+            ];
+        }
+        console.log(whereClause.OR[0].name)
+        console.log(whereClause.OR[1].business_name)
+        console.log(whereClause.OR[2].vendor_id)
+        console.log(whereClause.OR[3].email)
+        console.log(whereClause.OR[4].phone)
+        const [vendors, totalVendors] = await prisma.$transaction([
+            prisma.vendor.findMany({
+                skip,
+                take: limit,
+                where: whereClause,
+                orderBy: {
+                    created_at: "desc",
+                },
+                select: {
+                    name: true,
+                    business_name: true,
+                    phone: true,
+                    email: true,
+                    onboarding_completed: true,
+                    commission_rate: true,
+                    vendor_id: true,
+                }
+            }),
+            prisma.vendor.count({
+                where: whereClause,
+            }),
+        ]);
+
+        return {
+            status: 200,
+            success: true,
+            message: "Vendors retrieved successfully",
+            data: {
+                vendors,
+                pagination: {
+                    total_data: totalVendors,
+                    total_pages: Math.ceil(totalVendors / limit),
+                    current_page: page,
+                    per_page: vendors.length,
+                },
+            },
+        };
+    } catch (error) {
+        console.log(error)
+        throw error;
+    }
+};
   
