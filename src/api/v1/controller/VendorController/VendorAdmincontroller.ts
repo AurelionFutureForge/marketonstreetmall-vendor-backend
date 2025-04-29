@@ -54,7 +54,6 @@ export const updateBankDetails = async (req: Request, res: Response, next: NextF
     const response = await VendorAdminService.addOrUpdateBankDetails(vendor_id, parsedData);
     sendResponse(res, response.status, true, response.message, response.data);
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
@@ -87,7 +86,6 @@ export const uploadVendorDocuments = async (req: Request, res: Response, next: N
     const result = await VendorService.uploadVendorDocuments(vendor_id, documents);
     sendResponse(res, result.status, true, result.message, result.data);
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };

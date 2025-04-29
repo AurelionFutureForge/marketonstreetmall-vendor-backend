@@ -285,11 +285,7 @@ export const searchVendors = async (page: number = 1, limit: number = 10, search
                 { phone: { contains: search, mode: "insensitive" } },
             ];
         }
-        console.log(whereClause.OR[0].name)
-        console.log(whereClause.OR[1].business_name)
-        console.log(whereClause.OR[2].vendor_id)
-        console.log(whereClause.OR[3].email)
-        console.log(whereClause.OR[4].phone)
+
         const [vendors, totalVendors] = await prisma.$transaction([
             prisma.vendor.findMany({
                 skip,
@@ -328,7 +324,6 @@ export const searchVendors = async (page: number = 1, limit: number = 10, search
             },
         };
     } catch (error) {
-        console.log(error)
         throw error;
     }
 };

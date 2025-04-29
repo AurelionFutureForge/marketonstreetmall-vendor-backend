@@ -8,7 +8,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    
+
     if (!token) {
       return next(new AppError('No token provided', 401));
     }
@@ -26,7 +26,7 @@ export const authenticateVendor = async (req: Request, res: Response, next: Next
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    
+
     if (!token) {
       return next(new AppError('No token provided', 401));
     }
@@ -55,7 +55,7 @@ export const authenticateSuperAdmin = async (req: Request, res: Response, next: 
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    
+
     if (!token) {
       return next(new AppError('No token provided', 401));
     }
@@ -80,7 +80,6 @@ export const authenticateSuperAdmin = async (req: Request, res: Response, next: 
     req.user = decoded;
     next();
   } catch (error) {
-    console.log(error);
     return next(new AppError('Invalid or expired token', 401));
   }
 }; 

@@ -19,7 +19,6 @@ export const getVendorProfile = async (req: Request, res: Response, next: NextFu
     const response = await VendorService.getVendorUserProfile(vendor_id);
     sendResponse(res, response.status, true, response.message, response.data);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
