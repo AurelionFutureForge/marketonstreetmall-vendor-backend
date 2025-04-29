@@ -3,7 +3,7 @@ import prisma from "../../../../../prisma/client/prismaClient";
 export const getAllVendors = async (page: number = 1, limit: number = 10) => {
     try {
         const skip = (page - 1) * limit;
-        
+
         const vendors = await prisma.vendor.findMany({
             skip,
             take: limit,
@@ -186,7 +186,7 @@ export const deleteVendor = async (vendor_id: string) => {
     } catch (error) {
         throw error;
     }
-}; 
+};
 
 export const addOrUpdateBankDetails = async (vendorId: string, data: any) => {
     try {
@@ -211,7 +211,7 @@ export const addOrUpdateBankDetails = async (vendorId: string, data: any) => {
                 is_verified: data.is_verified ?? false,
             },
         });
-  
+
         return {
             status: 201,
             success: true,
@@ -254,7 +254,7 @@ export const addOrUpdateWarehouse = async (vendorId: string, data: any) => {
                 verification_status: data.verification_status || "PENDING",
             }
         });
-  
+
         return {
             status: 201,
             success: true,
@@ -265,4 +265,65 @@ export const addOrUpdateWarehouse = async (vendorId: string, data: any) => {
         throw error;
     }
 };
-  
+
+export const searchVendors = async (page: number = 1, limit: number = 10, search?: string, business_type?: string) => {
+    try {
+        const skip = (page - 1) * limit;
+
+        const whereClause: any = {};
+
+        if (business_type) {
+            whereClause.business_type = business_type;
+        }
+
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: search, mode: "insensitive" } },
+                { business_name: { contains: search, mode: "insensitive" } },
+                { vendor_id: { contains: search, mode: "insensitive" } },
+                { email: { contains: search, mode: "insensitive" } },
+                { phone: { contains: search, mode: "insensitive" } },
+            ];
+        }
+
+        const [vendors, totalVendors] = await prisma.$transaction([
+            prisma.vendor.findMany({
+                skip,
+                take: limit,
+                where: whereClause,
+                orderBy: {
+                    created_at: "desc",
+                },
+                select: {
+                    name: true,
+                    business_name: true,
+                    phone: true,
+                    email: true,
+                    onboarding_completed: true,
+                    commission_rate: true,
+                    vendor_id: true,
+                }
+            }),
+            prisma.vendor.count({
+                where: whereClause,
+            }),
+        ]);
+
+        return {
+            status: 200,
+            success: true,
+            message: "Vendors retrieved successfully",
+            data: {
+                vendors,
+                pagination: {
+                    total_data: totalVendors,
+                    total_pages: Math.ceil(totalVendors / limit),
+                    current_page: page,
+                    per_page: vendors.length,
+                },
+            },
+        };
+    } catch (error) {
+        throw error;
+    }
+};

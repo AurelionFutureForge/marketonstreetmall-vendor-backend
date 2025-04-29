@@ -376,7 +376,6 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
       data: { accessToken },
     };
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };
