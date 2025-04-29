@@ -30,7 +30,11 @@ export const getVendorUserProfile = async (vendorId: string) => {
       where: { vendor_user_id: vendorId },
     });
     if (!vendor) {
-      throw new Error("Vendor not found");
+      return {
+        status: 402,
+        success: false,
+        message: "Vendor not found"
+      };
     }
 
     return {
