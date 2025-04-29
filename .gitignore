@@ -1,8 +1,10 @@
 node_modules
 .env
-/dist
-# Sentry Config File
-.sentryclirc
+dist
 
 # Sentry Config File
 .sentryclirc
+
+# Logs
+combined.log
+error.log
