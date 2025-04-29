@@ -1,9 +1,8 @@
 import express,{ Router } from 'express';
-import dashboardRouter from './dashboardRouter/dashboardRouter';
+import VendorRouter from './VendorRouter';
 
 const apiRouter: Router = express.Router();
 
-// apiRouter.use("/app", dashboardRouter);
-apiRouter.use("/dashboard", dashboardRouter);
+apiRouter.use("/vendor", VendorRouter);
 
 export default apiRouter;
