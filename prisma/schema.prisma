@@ -24,7 +24,6 @@ model CmsUser {
 
 model Vendor {
   vendor_id            String           @id @default(uuid())
-  name                 String
   business_name        String
   legal_name           String
   gstin                String?          @unique
@@ -37,12 +36,13 @@ model Vendor {
   role                 VendorRole       @default(VENDOR_ADMIN)
   created_at           DateTime         @default(now())
   updated_at           DateTime         @updatedAt
+  name                 String
   bank_details         BankDetail?
   orders               Order[]
   products             Product[]
+  documents            VendorDocument[]
   team                 VendorUser[]
   warehouse            Warehouse?
-  documents            VendorDocument[]
 
   @@index([email])
   @@index([phone])
@@ -74,8 +74,7 @@ model VendorDocument {
   name        String
   url         String
   uploaded_at DateTime @default(now())
-
-  vendor Vendor @relation(fields: [vendor_id], references: [vendor_id], onDelete: Cascade)
+  vendor      Vendor   @relation(fields: [vendor_id], references: [vendor_id], onDelete: Cascade)
 
   @@index([vendor_id])
 }
@@ -354,7 +353,6 @@ model Otp {
   user_id        String?
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
-
   relatedCmsUser CmsUser? @relation("CmsUserOtps", fields: [user_id], references: [cms_user_id], onDelete: Cascade, map: "otp_cmsuser_fkey")
 
   @@index([user_id])
