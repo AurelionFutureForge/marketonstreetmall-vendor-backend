@@ -114,7 +114,7 @@ export const handleLoginVendor = async (email: string, password: string) => {
     const accessToken = jwt.sign(
       { vendor_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id, role: user.role },
       process.env.JWT_SECRET || "access-secret",
-      { expiresIn: "15m" }
+      { expiresIn: "1d" }
     );
 
     const refreshToken = jwt.sign(
