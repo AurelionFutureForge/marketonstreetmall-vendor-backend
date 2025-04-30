@@ -5,7 +5,7 @@ const VendorAdminRouter = Router();
 
 VendorAdminRouter.get('/', VendorAdminController.getAllVendors);
 VendorAdminRouter.post('/', VendorAuthController.registerController);
-VendorAdminRouter.get('/:vendor_id', VendorAdminController.getVendorDetails);
+VendorAdminRouter.get('/:vendor_id/details', VendorAdminController.getVendorDetails);
 VendorAdminRouter.put('/:vendor_id', VendorAdminController.updateVendorProfile);
 VendorAdminRouter.delete('/:vendor_id', VendorAdminController.deleteVendor);
 VendorAdminRouter.put('/:vendor_id/bank', VendorAdminController.updateBankDetails);

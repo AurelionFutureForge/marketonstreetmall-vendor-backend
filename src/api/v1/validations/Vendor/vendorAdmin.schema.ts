@@ -18,5 +18,5 @@ export const VendorSearchQuerySchema = z.object({
             message: "Limit must be a positive integer.",
         }),
     q: z.string().optional(),
-    business_type: z.string().optional(),
+    onboarding_completed: z.string().optional(),
 });
