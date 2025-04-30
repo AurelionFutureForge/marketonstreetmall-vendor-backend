@@ -73,6 +73,7 @@ model VendorDocument {
   vendor_id   String
   name        String
   url         String
+  type        String?
   uploaded_at DateTime @default(now())
   vendor      Vendor   @relation(fields: [vendor_id], references: [vendor_id], onDelete: Cascade)
 

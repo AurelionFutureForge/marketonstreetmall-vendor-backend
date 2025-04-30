@@ -78,7 +78,7 @@ export const updateVendorProfile = async (vendorId: string, data: any) => {
 
 export const uploadVendorDocuments = async (
   vendorId: string,
-  documents: { name: string; url: string }[]
+  documents: { name: string; url: string; type?: string }[]
 ) => {
   try {
     const created = await prisma.vendorDocument.createMany({
@@ -86,6 +86,7 @@ export const uploadVendorDocuments = async (
         vendor_id: vendorId,
         name: doc.name,
         url: doc.url,
+        type: doc.type || null,
       })),
     });
 
