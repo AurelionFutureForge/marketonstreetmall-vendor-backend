@@ -23,6 +23,7 @@ export const UploadVendorDocumentsSchema = z.object({
     z.object({
       name: z.string().min(1, "Document name is required"),
       url: z.string().url("Valid URL is required"),
+      type: z.string().optional(),
     })
   ),
 });
