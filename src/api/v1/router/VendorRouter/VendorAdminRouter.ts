@@ -3,15 +3,15 @@ import { VendorAdminController, VendorAuthController } from '../../controller';
 
 const VendorAdminRouter = Router();
 
-VendorAdminRouter.get('/vendors', VendorAdminController.getAllVendors);
-VendorAdminRouter.post('/vendors', VendorAuthController.registerController);
-VendorAdminRouter.get('/vendors/:vendor_id', VendorAdminController.getVendorDetails);
-VendorAdminRouter.put('/vendors/:vendor_id', VendorAdminController.updateVendorProfile);
-VendorAdminRouter.delete('/vendors/:vendor_id', VendorAdminController.deleteVendor);
-VendorAdminRouter.put('/vendors/:vendor_id/bank', VendorAdminController.updateBankDetails);
-VendorAdminRouter.put('/vendors/:vendor_id/warehouse', VendorAdminController.addOrUpdateWarehouse);
-VendorAdminRouter.get('/search/vendors', VendorAdminController.searchVendors);
-VendorAdminRouter.put('/vendors/:vendor_id/documents', VendorAdminController.uploadVendorDocuments);
-VendorAdminRouter.get('/vendors/:vendor_id/documents', VendorAdminController.getVendorDocuments);
+VendorAdminRouter.get('/', VendorAdminController.getAllVendors);
+VendorAdminRouter.post('/', VendorAuthController.registerController);
+VendorAdminRouter.get('/:vendor_id', VendorAdminController.getVendorDetails);
+VendorAdminRouter.put('/:vendor_id', VendorAdminController.updateVendorProfile);
+VendorAdminRouter.delete('/:vendor_id', VendorAdminController.deleteVendor);
+VendorAdminRouter.put('/:vendor_id/bank', VendorAdminController.updateBankDetails);
+VendorAdminRouter.put('/:vendor_id/warehouse', VendorAdminController.addOrUpdateWarehouse);
+VendorAdminRouter.get('/vendors', VendorAdminController.searchVendors);
+VendorAdminRouter.put('/:vendor_id/documents', VendorAdminController.uploadVendorDocuments);
+VendorAdminRouter.get('/:vendor_id/documents', VendorAdminController.getVendorDocuments);
 
 export default VendorAdminRouter; 

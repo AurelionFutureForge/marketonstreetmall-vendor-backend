@@ -1165,3 +1165,12 @@
 {"level":"info","message":"PUT /v1/vendor/admin/vendors/61465c82-fe13-453d-b236-6f7a3abcf452 200 1015.989 ms - 351","timestamp":"2025-04-30T08:27:16.696Z"}
 {"level":"info","message":"GET /v1/vendor/admin/vendors/61465c82-fe13-453d-b236-6f7a3abcf452 200 1014.179 ms - -","timestamp":"2025-04-30T08:27:17.730Z"}
 {"level":"info","message":"GET /v1/vendor/admin/vendors?page=1&limit=10 200 1255.339 ms - 990","timestamp":"2025-04-30T08:27:51.127Z"}
+{"level":"info","message":"GET /v1/vendor/admin?page=1&limit=10 500 5085.794 ms - 85","timestamp":"2025-04-30T10:26:34.234Z"}
+{"level":"info","message":"GET /v1/vendor/admin?page=1&limit=10 - - ms - -","timestamp":"2025-04-30T10:26:41.904Z"}
+{"level":"info","message":"GET /v1/vendor/admin?page=1&limit=10 200 587.936 ms - -","timestamp":"2025-04-30T10:26:47.821Z"}
+{"level":"info","message":"GET /v1/vendor/admin/8b7f1f3a-c9ca-449a-971a-e50b12a2008c 200 7014.427 ms - 531","timestamp":"2025-04-30T10:27:09.352Z"}
+{"level":"info","message":"GET /v1/vendor/admin/8b7f1f3a-c9ca-449a-971a-e50b12a2008c 200 1315.859 ms - 531","timestamp":"2025-04-30T10:30:01.779Z"}
+{"level":"info","message":"GET /v1/vendor/admin?page=1&limit=10 200 532.863 ms - -","timestamp":"2025-04-30T10:30:07.452Z"}
+{"level":"info","message":"OPTIONS /v1/vendor/admin/8b7f1f3a-c9ca-449a-971a-e50b12a2008c 204 2.115 ms - 0","timestamp":"2025-04-30T10:30:15.275Z"}
+{"level":"info","message":"DELETE /v1/vendor/admin/8b7f1f3a-c9ca-449a-971a-e50b12a2008c 200 3021.218 ms - 137","timestamp":"2025-04-30T10:30:18.302Z"}
+{"level":"info","message":"GET /v1/vendor/admin?page=1&limit=10 200 557.872 ms - 990","timestamp":"2025-04-30T10:30:18.889Z"}
