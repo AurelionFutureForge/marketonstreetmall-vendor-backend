@@ -38,6 +38,21 @@ export const handleVendorRegister = async (vendorData: {
   role?: "VENDOR_ADMIN" | "PRODUCT_ADMIN";
 }) => {
   try {
+    // Check if email exists in VendorUser table
+    const existingVendorUser = await prisma.vendorUser.findUnique({
+      where: {
+        email: vendorData.email,
+      },
+    });
+
+    if (existingVendorUser) {
+      return {
+        status: 404,
+        success: false,
+        message: "Email already exists as product admin",
+      };
+    }
+
     const existingVendor = await prisma.vendor.findFirst({
       where: {
         OR: [
