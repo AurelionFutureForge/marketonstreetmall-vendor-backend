@@ -71,8 +71,8 @@ export const addOrUpdateWarehouse = async (req: Request, res: Response, next: Ne
 
 export const searchVendors = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { page, limit, q, business_type } = VendorSearchQuerySchema.parse(req.query);
-    const response = await VendorAdminService.searchVendors(page, limit, q, business_type);
+    const { page, limit, q, onboarding_completed } = VendorSearchQuerySchema.parse(req.query);
+    const response = await VendorAdminService.searchVendors(page, limit, q, onboarding_completed);
     sendResponse(res, response.status, response.success, response.message, response.data);
   } catch (error) {
     next(error);

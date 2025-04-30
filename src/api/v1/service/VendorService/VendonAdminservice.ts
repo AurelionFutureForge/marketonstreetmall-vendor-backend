@@ -1,3 +1,4 @@
+import { boolean } from "zod";
 import prisma from "../../../../../prisma/client/prismaClient";
 
 export const getAllVendors = async (page: number = 1, limit: number = 10) => {
@@ -266,14 +267,14 @@ export const addOrUpdateWarehouse = async (vendorId: string, data: any) => {
     }
 };
 
-export const searchVendors = async (page: number = 1, limit: number = 10, search?: string, business_type?: string) => {
+export const searchVendors = async (page: number = 1, limit: number = 10, search?: string, onboarding_completed?: string) => {
     try {
         const skip = (page - 1) * limit;
 
         const whereClause: any = {};
 
-        if (business_type) {
-            whereClause.business_type = business_type;
+        if (onboarding_completed === 'true' || onboarding_completed === 'false') {
+            whereClause.onboarding_completed = onboarding_completed === 'true';
         }
 
         if (search) {
@@ -324,6 +325,7 @@ export const searchVendors = async (page: number = 1, limit: number = 10, search
             },
         };
     } catch (error) {
+        console.log(error);
         throw error;
     }
 };
