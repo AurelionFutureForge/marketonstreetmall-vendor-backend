@@ -11,6 +11,7 @@ type User = {
   password: string;
   email: string;
   role: string;
+  onboarding_completed?: boolean;
 };
 
 export const getCmsUserByEmailVendor = async (email: string) => {
@@ -207,6 +208,10 @@ export const handleLoginVendor = async (email: string, password: string) => {
     // Verify password
     if (user.password !== password) {
       return { status: 401, message: "Invalid credentials" };
+    }
+
+    if(role === 'vendor_admin' && !vendorData?.onboarding_completed){
+      return { status: 401, message: "Vendor not onboarded" };
     }
 
     // Generate tokens
