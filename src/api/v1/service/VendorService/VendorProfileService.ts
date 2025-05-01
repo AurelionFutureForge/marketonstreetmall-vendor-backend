@@ -1,4 +1,5 @@
 import prisma from "../../../../../prisma/client/prismaClient";
+import axios from 'axios';
 
 export const getVendorProfile = async (vendorId: string) => {
   try {
@@ -51,6 +52,69 @@ export const getVendorUserProfile = async (vendorId: string) => {
 
 export const updateVendorProfile = async (vendorId: string, data: any) => {
   try {
+    const vendor = await prisma.vendor.findUnique({
+      where: { vendor_id: vendorId },
+      include: {
+        category: {
+          select: {
+            name: true,
+            category_id: true,
+            subcategory_groups: {
+              select: {
+                name: true,
+                group_id: true,
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!vendor) {
+      return {
+        status: 404,
+        success: false,
+        message: "Vendor not found",
+      };
+    }
+
+    // If business name is changing and there are categories, update them in external API
+    if (data.business_name && data.business_name !== vendor.business_name && vendor.category.length > 0) {
+      await Promise.all(vendor.category.map(async (category) => {
+        try {
+          const groupId = category.subcategory_groups[0]?.group_id;
+          console.log(groupId);
+          if (groupId) {
+            const response = await axios.put(
+              `https://api.streetmallcommerce.com/v1/dashboard/categories-group/${groupId}`,
+              {
+                name: `${data.business_name} ${category.name}`,
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                }
+              }
+            );
+
+            if (response.status === 200 || response.status === 201) {
+              await prisma.subcategoryGroup.update({
+                where: {
+                  group_id: groupId
+                },
+                data: {
+                  name: response.data.data.name
+                }
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to update category group for category ${category.category_id}:`, error);
+        }
+      }));
+    }
+
     const updatedVendor = await prisma.vendor.update({
       where: { vendor_id: vendorId },
       data: {

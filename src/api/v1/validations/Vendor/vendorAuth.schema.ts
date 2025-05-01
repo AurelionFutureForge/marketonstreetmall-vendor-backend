@@ -18,6 +18,12 @@ export const VendorRegisterSchema = z.object({
   phone: z.string().min(10, 'Phone must be 10 digits').max(10, 'Phone must be 10 digits'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   role: z.enum(['VENDOR_ADMIN', 'PRODUCT_ADMIN']).default('VENDOR_ADMIN'),
+  category_id: z.string().optional(),
+  category_name: z.string().optional(),
+  categories: z.array(z.object({
+    category_id: z.string(),
+    category_name: z.string(),
+  })).optional(),
 });
 
 export const VerifyOtpSchema = z.object({

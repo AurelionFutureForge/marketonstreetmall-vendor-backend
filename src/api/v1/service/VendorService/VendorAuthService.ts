@@ -2,6 +2,7 @@ import prisma from "../../../../../prisma/client/prismaClient";
 import { sendToken } from "../../utils/sendToken";
 import { sendMail } from "../../utils/smtpService";
 import jwt from "jsonwebtoken";
+import axios from "axios";
 
 type User = {
   vendor_id?: string;
@@ -36,6 +37,9 @@ export const handleVendorRegister = async (vendorData: {
   phone: string;
   password: string;
   role?: "VENDOR_ADMIN" | "PRODUCT_ADMIN";
+  category_id?: string;
+  category_name?: string;
+  categories?: { category_id: string; category_name: string }[];
 }) => {
   try {
     // Check if email exists in VendorUser table
@@ -72,20 +76,66 @@ export const handleVendorRegister = async (vendorData: {
       };
     }
 
-    const newVendor = await prisma.vendor.create({
-      data: {
-        name: vendorData.name,
-        business_name: vendorData.business_name,
-        legal_name: vendorData.legal_name,
-        gstin: vendorData.gstin,
-        pan: vendorData.pan,
-        commission_rate: vendorData.commission_rate ?? 0,
-        onboarding_completed: vendorData.onboarding_completed ?? false,
-        email: vendorData.email,
-        phone: vendorData.phone,
-        password: vendorData.password,
-        role: vendorData.role ?? "VENDOR_ADMIN",
-      },
+    const newVendor = await prisma.$transaction(async (tx) => {
+      const vendor = await tx.vendor.create({
+        data: {
+          name: vendorData.name,
+          business_name: vendorData.business_name,
+          legal_name: vendorData.legal_name,
+          gstin: vendorData.gstin,
+          pan: vendorData.pan,
+          commission_rate: vendorData.commission_rate ?? 0,
+          onboarding_completed: vendorData.onboarding_completed ?? false,
+          email: vendorData.email,
+          phone: vendorData.phone,
+          password: vendorData.password,
+          role: vendorData.role ?? "VENDOR_ADMIN",
+        },
+      });
+
+      if (vendorData.categories && vendorData.categories.length > 0) {
+        await Promise.all(vendorData.categories.map(async (categoryData) => {
+          try {
+            const response = await axios.post(
+              'https://api.streetmallcommerce.com/v1/dashboard/categories-group/',
+              {
+                category_id: categoryData.category_id,
+                name: vendorData.business_name + " " + categoryData.category_name
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                }
+              }
+            );
+
+            if (response.status === 200 || response.status === 201) {
+              const category = await tx.category.create({
+                data: {
+                  category_id: categoryData.category_id,
+                  name: categoryData.category_name,
+                  is_public: false,
+                  vendor_id: vendor.vendor_id
+                },
+              });
+
+              await tx.subcategoryGroup.create({
+                data: {
+                  id: category.id,
+                  group_id: response.data.data.group_id,
+                  name: response.data.data.name,
+                  is_public: true
+                },
+              });
+            }
+          } catch (error) {
+            console.error('Error creating category group:', error);
+          }
+        }));
+      }
+
+      return vendor;
     });
 
     return {
@@ -110,10 +160,44 @@ export const handleLoginVendor = async (email: string, password: string) => {
   try {
     let user: User | null = null;
     let role = 'vendor';
+    let vendorData = null;
+
+    // Check vendor user first
     user = await getCmsUserByEmailVendorUser(email);
     if (!user) {
-      user = await getCmsUserByEmailVendor(email);
-      role = 'vendor_admin';
+      // If not vendor user, check main vendor
+      vendorData = await prisma.vendor.findUnique({
+        where: { email },
+        include: {
+          bank_details: true,
+          category: {
+            select: {
+              name: true,
+              category_id: true,
+              subcategory_groups: {
+                select: {
+                  name: true,
+                  group_id: true,
+                }
+              }
+            }
+          },
+          warehouse: true,
+          team: true,
+          documents: true,
+          products: {
+            include: {
+              images: true,
+              variants: true,
+              attributes: true
+            }
+          }
+        }
+      });
+      if (vendorData) {
+        user = vendorData;
+        role = 'vendor_admin';
+      }
     }
 
     if (!user) {
@@ -142,15 +226,33 @@ export const handleLoginVendor = async (email: string, password: string) => {
       status: 200,
       message: "Login successful",
       data: {
-        user: {
-          vendor_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id,
+        user: role === 'vendor_admin' ? {
+          vendor_id: user.vendor_id,
           name: user.name,
           email: user.email,
           role: user.role,
+          business_name: vendorData?.business_name,
+          legal_name: vendorData?.legal_name,
+          gstin: vendorData?.gstin,
+          pan: vendorData?.pan,
+          commission_rate: vendorData?.commission_rate,
+          onboarding_completed: vendorData?.onboarding_completed,
+          phone: vendorData?.phone,
+          created_at: vendorData?.created_at,
+          updated_at: vendorData?.updated_at,
+          bank_details: vendorData?.bank_details,
+          category: vendorData?.category,
+          warehouse: vendorData?.warehouse,
+          documents: vendorData?.documents
+        } : {
+          vendor_user_id: user.vendor_user_id,
+          name: user.name,
+          email: user.email,
+          role: user.role
         },
-        tokens: {
-          accessToken,
-          refreshToken,
+        token_data: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
         },
       },
     };

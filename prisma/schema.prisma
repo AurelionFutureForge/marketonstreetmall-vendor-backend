@@ -38,6 +38,7 @@ model Vendor {
   updated_at           DateTime         @updatedAt
   name                 String
   bank_details         BankDetail?
+  category             Category[]
   orders               Order[]
   products             Product[]
   documents            VendorDocument[]
@@ -122,13 +123,17 @@ model Warehouse {
 }
 
 model Category {
-  category_id        String             @id @default(uuid())
-  name               String             @unique
+  id                 String             @id @default(uuid())
+  category_id        String             
+  name               String
   image_url          String?
   is_public          Boolean            @default(false)
   created_at         DateTime           @default(now())
   updated_at         DateTime           @updatedAt
   subcategory_groups SubcategoryGroup[]
+
+  vendor_id String
+  vendor    Vendor @relation(references: [vendor_id], fields: [vendor_id])
 
   @@index([is_public])
 }
@@ -139,11 +144,11 @@ model SubcategoryGroup {
   is_public     Boolean       @default(false)
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt
-  category_id   String
+  id            String
   subcategories Subcategory[]
-  category      Category      @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
+  category      Category      @relation(fields: [id], references: [id], onDelete: Cascade)
 
-  @@index([category_id])
+  @@index([id])
   @@index([is_public])
 }
 

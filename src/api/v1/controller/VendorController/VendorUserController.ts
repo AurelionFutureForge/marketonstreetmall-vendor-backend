@@ -11,7 +11,6 @@ export const addVendorUserController = async (req: Request, res: Response, next:
     sendResponse(res, result.status, result.success, result.message, result.data);
   } catch (error) {
     next(error);
-
   }
 };
 

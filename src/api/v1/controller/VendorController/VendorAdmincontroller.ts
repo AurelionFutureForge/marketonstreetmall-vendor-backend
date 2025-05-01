@@ -27,7 +27,6 @@ export const getVendorDetails = async (req: Request, res: Response, next: NextFu
 
 export const updateVendorProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     const { vendor_id } = AuthenticatedUserSchema.parse(req.params);
     const updateData = UpdateVendorProfileSchema.parse(req.body);
     const response = await VendorAdminService.updateVendorProfile(vendor_id, updateData);

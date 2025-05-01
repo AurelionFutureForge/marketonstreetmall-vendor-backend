@@ -25,7 +25,6 @@ export const loginController = async (req: Request, res: Response, next: NextFun
   }
 };
 
-
 export const verifyOtpController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { otp_id, otp } = VerifyOtpSchema.parse(req.body);
@@ -39,7 +38,6 @@ export const verifyOtpController = async (req: Request, res: Response, next: Nex
     next(error)
   }
 };
-
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -60,7 +58,6 @@ export const refreshTokenController = async (req: Request, res: Response, next: 
     next(error);
   }
 };
-
 
 export const forgotPasswordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
