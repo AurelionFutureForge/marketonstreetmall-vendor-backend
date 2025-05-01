@@ -320,7 +320,7 @@ export const searchVendors = async (page: number = 1, limit: number = 10, search
                     total_data: totalVendors,
                     total_pages: Math.ceil(totalVendors / limit),
                     current_page: page,
-                    per_page: vendors.length,
+                    per_page: limit,
                 },
             },
         };
