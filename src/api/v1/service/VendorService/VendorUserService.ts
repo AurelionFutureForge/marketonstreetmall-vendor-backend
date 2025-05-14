@@ -1,9 +1,9 @@
 import prisma from "../../../../../prisma/client/prismaClient";
-
+import bcrypt from 'bcryptjs';
 export const addVendorUser = async (vendorId: string, userData: any) => {
   try {
     const existingAdminUser = await prisma.vendor.findUnique({
-      where: { email: userData.email },
+      where: { vendor_email: userData.email },
     });
 
     if (existingAdminUser) {
@@ -26,9 +26,12 @@ export const addVendorUser = async (vendorId: string, userData: any) => {
       };
     }
 
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
     const newUser = await prisma.vendorUser.create({
       data: {
         ...userData,
+        password: hashedPassword,
         vendor_id: vendorId,
         role: "PRODUCT_ADMIN",
       },

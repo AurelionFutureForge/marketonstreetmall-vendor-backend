@@ -1,8 +1,10 @@
 import prisma from "../../../../../prisma/client/prismaClient";
-import { sendToken } from "../../utils/sendToken";
-import { sendMail } from "../../utils/smtpService";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import axios from "axios";
+import dotenv from 'dotenv';
+import { sendMail } from "../../utils/smtpService";
+import bcrypt from 'bcryptjs';
+dotenv.config();
 
 type User = {
   vendor_id?: string;
@@ -14,13 +16,7 @@ type User = {
   onboarding_completed?: boolean;
 };
 
-export const getCmsUserByEmailVendor = async (email: string) => {
-  return await prisma.vendor.findUnique({
-    where: { email },
-  });
-};
-
-export const getCmsUserByEmailVendorUser = async (email: string) => {
+export const getVendorUserByEmail = async (email: string) => {
   return await prisma.vendorUser.findUnique({
     where: { email },
   });
@@ -37,12 +33,11 @@ export const handleVendorRegister = async (vendorData: {
   email: string;
   phone: string;
   password: string;
-  role?: "VENDOR_ADMIN" | "PRODUCT_ADMIN";
-  category_id?: string;
-  category_name?: string;
+  role: "VENDOR_ADMIN" | "PRODUCT_ADMIN";
   categories?: { category_id: string; category_name: string }[];
 }) => {
   try {
+    console.log("vendorData:", vendorData);
     // Check if email exists in VendorUser table
     const existingVendorUser = await prisma.vendorUser.findUnique({
       where: {
@@ -54,18 +49,18 @@ export const handleVendorRegister = async (vendorData: {
       return {
         status: 404,
         success: false,
-        message: "Email already exists as product admin",
+        message: "Email already exists as product admin or vendor admin",
       };
     }
 
+    // For VENDOR_ADMIN, check if vendor exists with same details
     const existingVendor = await prisma.vendor.findFirst({
       where: {
         OR: [
-          { email: vendorData.email },
-          { phone: vendorData.phone },
-          vendorData.gstin ? { gstin: vendorData.gstin } : undefined,
-          vendorData.pan ? { pan: vendorData.pan } : undefined,
-        ].filter(Boolean) as any, // Remove undefined entries
+          { vendor_email: vendorData.email },
+          { gstin: vendorData.gstin },
+          { pan: vendorData.pan },
+        ],
       },
     });
 
@@ -73,28 +68,57 @@ export const handleVendorRegister = async (vendorData: {
       return {
         status: 404,
         success: false,
-        message: "Vendor already exists with given email, phone, GSTIN, or PAN",
+        message: "Vendor already exists with given email, GSTIN, or PAN",
       };
     }
 
     const newVendor = await prisma.$transaction(async (tx) => {
       const vendor = await tx.vendor.create({
         data: {
-          name: vendorData.name,
           business_name: vendorData.business_name,
           legal_name: vendorData.legal_name,
           gstin: vendorData.gstin,
           pan: vendorData.pan,
           commission_rate: vendorData.commission_rate ?? 0,
-          onboarding_completed: vendorData.onboarding_completed ?? false,
+          onboarding_completed: false,
+          vendor_email: vendorData.email,
+          vendor_phone: vendorData.phone,
+          vendor_name: vendorData.name
+        },
+      });
+
+      const hashedPassword = await bcrypt.hash(vendorData.password, 10);
+
+      const vendorUser = await tx.vendorUser.create({
+        data: {
+          name: vendorData.name,
           email: vendorData.email,
-          phone: vendorData.phone,
-          password: vendorData.password,
-          role: vendorData.role ?? "VENDOR_ADMIN",
+          password: hashedPassword,
+          role: "VENDOR_ADMIN",
+          vendor: {
+            connect: {
+              vendor_id: vendor.vendor_id
+            }
+          }
         },
       });
 
       if (vendorData.categories && vendorData.categories.length > 0) {
+        // First, check all existing categories
+        const existingCategories = await tx.category.findMany({
+          where: {
+            category_id: {
+              in: vendorData.categories.map(cat => cat.category_id)
+            }
+          }
+        });
+
+        // Create a map for quick lookup
+        const existingCategoryMap = new Map(
+          existingCategories.map(cat => [cat.category_id, cat])
+        );
+
+        // Process each category
         await Promise.all(vendorData.categories.map(async (categoryData) => {
           try {
             const response = await axios.post(
@@ -112,15 +136,35 @@ export const handleVendorRegister = async (vendorData: {
             );
 
             if (response.status === 200 || response.status === 201) {
-              const category = await tx.category.create({
-                data: {
-                  category_id: categoryData.category_id,
-                  name: categoryData.category_name,
-                  is_public: false,
-                  vendor_id: vendor.vendor_id
-                },
-              });
+              let category = existingCategoryMap.get(categoryData.category_id);
 
+              if (category) {
+                // Connect existing category to vendor
+                await tx.vendor.update({
+                  where: { vendor_id: vendor.vendor_id },
+                  data: {
+                    category: {
+                      connect: { id: category.id }
+                    }
+                  }
+                });
+              } else {
+                // Create new category and connect to vendor
+                category = await tx.category.create({
+                  data: {
+                    category_id: categoryData.category_id,
+                    name: categoryData.category_name,
+                    is_public: false,
+                    vendor: {
+                      connect: {
+                        vendor_id: vendor.vendor_id
+                      }
+                    }
+                  },
+                });
+              }
+
+              // Create subcategory group
               await tx.subcategoryGroup.create({
                 data: {
                   id: category.id,
@@ -136,7 +180,7 @@ export const handleVendorRegister = async (vendorData: {
         }));
       }
 
-      return vendor;
+      return { vendor, vendorUser };
     });
 
     return {
@@ -144,126 +188,82 @@ export const handleVendorRegister = async (vendorData: {
       success: true,
       message: "Vendor registered successfully",
       data: {
-        vendor_id: newVendor.vendor_id,
-        name: newVendor.name,
-        business_name: newVendor.business_name,
-        email: newVendor.email,
-        phone: newVendor.phone,
-        role: newVendor.role,
+        vendor_id: newVendor.vendor.vendor_id,
+        name: newVendor.vendor.vendor_name,
+        business_name: newVendor.vendor.business_name,
+        email: newVendor.vendor.vendor_email,
+        phone: newVendor.vendor.vendor_phone,
+        role: newVendor.vendorUser.role,
       },
     };
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
 
 export const handleLoginVendor = async (email: string, password: string) => {
   try {
-    let user: User | null = null;
-    let role = 'vendor';
-    let vendorData = null;
-
-    // Check vendor user first
-    user = await getCmsUserByEmailVendorUser(email);
-    if (!user) {
-      // If not vendor user, check main vendor
-      vendorData = await prisma.vendor.findUnique({
-        where: { email },
-        include: {
-          bank_details: true,
-          category: {
-            select: {
-              name: true,
-              category_id: true,
-              subcategory_groups: {
-                select: {
-                  name: true,
-                  group_id: true,
-                }
-              }
-            }
-          },
-          warehouse: true,
-          team: true,
-          documents: true,
-          products: {
-            include: {
-              images: true,
-              variants: true,
-              attributes: true
-            }
+    const user = await prisma.vendorUser.findUnique({
+      where: { email },
+      include: {
+        vendor: {
+          include: {
+            bank_details: true,
+            category: true,
+            warehouse: true,
+            documents: true
           }
         }
-      });
-      if (vendorData) {
-        user = vendorData;
-        role = 'vendor_admin';
       }
-    }
+    });
 
     if (!user) {
       return { status: 404, message: "User not found" };
     }
 
-    // Verify password
-    if (user.password !== password) {
+    // Verify password using bcrypt
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
       return { status: 401, message: "Invalid credentials" };
     }
 
-    if(role === 'vendor_admin' && !vendorData?.onboarding_completed){
+    if (user.role === 'VENDOR_ADMIN' && !user.vendor?.onboarding_completed) {
       return { status: 401, message: "Vendor not onboarded" };
     }
 
+    const payload = {
+      user_name: user.name,
+      user_id: user.vendor_user_id,
+      user_role: user.role,
+      type: 'VENDOR',
+      vendor_id: user.vendor_id || null,
+      vendor_name: user.vendor.vendor_name || null
+    }
     // Generate tokens
     const accessToken = jwt.sign(
-      { 
-        user_name: user.name,
-        user_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id,
-        user_role: user.role,
-        type: 'VENDOR'
-      },
-      process.env.JWT_SECRET || "access-secret",
-      { expiresIn: "1d" }
+      payload,
+      process.env.ACCESS_TOKEN_SECRET!,
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY! } as jwt.SignOptions
     );
 
     const refreshToken = jwt.sign(
-      { 
-        user_name: user.name,
-        user_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id,
-        user_role: user.role,
-        type: 'VENDOR'
-      },
-      process.env.RESET_TOKEN_SECRET || "refresh-secret",
-      { expiresIn: "7d" }
+      payload,
+      process.env.REFRESH_TOKEN_SECRET!,
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRY! } as jwt.SignOptions
     );
 
     return {
       status: 200,
+      success: true,
       message: "Login successful",
       data: {
-        user: role === 'vendor_admin' ? {
-          vendor_id: user.vendor_id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          business_name: vendorData?.business_name,
-          legal_name: vendorData?.legal_name,
-          gstin: vendorData?.gstin,
-          pan: vendorData?.pan,
-          commission_rate: vendorData?.commission_rate,
-          onboarding_completed: vendorData?.onboarding_completed,
-          phone: vendorData?.phone,
-          created_at: vendorData?.created_at,
-          updated_at: vendorData?.updated_at,
-          bank_details: vendorData?.bank_details,
-          category: vendorData?.category,
-          warehouse: vendorData?.warehouse,
-          documents: vendorData?.documents
-        } : {
+        user: {
           vendor_user_id: user.vendor_user_id,
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
+          vendor: user.vendor
         },
         token_data: {
           access_token: accessToken,
@@ -276,61 +276,18 @@ export const handleLoginVendor = async (email: string, password: string) => {
   }
 };
 
-export const verifyOtp = async (otp_id: string, otp: string) => {
-  try {
-    // Fetch the OTP from the database
-    const storedOtp = await prisma.otp.findUnique({
-      where: { otp_id: otp_id },
-      include: {
-        relatedCmsUser: true,
-      },
-    });
-
-    if (!storedOtp) {
-      return { status: 404, success: false, message: "OTP not found" };
-    }
-
-    if (storedOtp.otp !== otp) {
-      return { status: 401, success: false, message: "Invalid OTP" };
-    }
-
-    if (new Date() > storedOtp.otp_expiration!) {
-      return { status: 402, success: false, message: "OTP expired" };
-    }
-
-    if (!storedOtp.relatedCmsUser) {
-      return { status: 404, success: false, message: "User not found" };
-    }
-
-    const tokenData = await sendToken(storedOtp.relatedCmsUser);
-    await prisma.otp.delete({
-      where: {
-        otp_id: otp_id,
-      },
-    });
-    return {
-      status: 200,
-      success: true,
-      message: "OTP verified successfully",
-      data: { ...storedOtp.relatedCmsUser, tokenData },
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const handleForgotPasswordVendor = async (
   email: string,
   origin: string
 ) => {
   try {
-    const user = await getCmsUserByEmailVendor(email);
+    const user = await getVendorUserByEmail(email);
     if (!user) {
       return { status: 201, success: false, message: "User not found" };
     }
 
     const resetToken = jwt.sign(
-      { vendor_id: user.vendor_id },
+      { vendor_user_id: user.vendor_user_id },
       process.env.RESET_TOKEN_SECRET || "reset-secret",
       { expiresIn: "15m" }
     );
@@ -338,7 +295,7 @@ export const handleForgotPasswordVendor = async (
     // Store reset token in database
     await prisma.passwordReset.create({
       data: {
-        user_id: user.vendor_id,
+        user_id: user.vendor_user_id,
         token: resetToken,
         expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       },
@@ -370,34 +327,44 @@ export const handleResetPasswordVendor = async (
     const decoded = jwt.verify(
       token,
       process.env.RESET_TOKEN_SECRET || "reset-secret"
-    ) as { vendor_id: string };
+    ) as { vendor_user_id: string };
 
-    // Check if token exists and is not expired
-    const resetToken = await prisma.passwordReset.findFirst({
-      where: {
-        token: token,
-        user_id: decoded.vendor_id,
-        expires_at: { gt: new Date() },
-      },
+    // Find the reset token in database
+    const resetToken = await prisma.passwordReset.findUnique({
+      where: { token },
     });
 
     if (!resetToken) {
       return {
-        status: 401,
+        status: 404,
         success: false,
         message: "Invalid or expired reset token",
       };
     }
 
+    if (resetToken.expires_at < new Date()) {
+      // Delete expired token
+      await prisma.passwordReset.delete({
+        where: { token },
+      });
+      return {
+        status: 400,
+        success: false,
+        message: "Reset token has expired",
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
     // Update password
-    await prisma.vendor.update({
-      where: { vendor_id: decoded.vendor_id },
-      data: { password: newPassword },
+    await prisma.vendorUser.update({
+      where: { vendor_user_id: decoded.vendor_user_id },
+      data: { password: hashedPassword },
     });
 
     // Delete used token
     await prisma.passwordReset.delete({
-      where: { id: resetToken.id },
+      where: { token },
     });
 
     return {
@@ -411,35 +378,30 @@ export const handleResetPasswordVendor = async (
 };
 
 export const handleChangePasswordVendor = async (
-  vendor_id: string,
+  vendor_user_id: string,
   currentPassword: string,
   newPassword: string
 ) => {
   try {
-    let user;
-    let role = 'vendor';
-    user = await prisma.vendor.findUnique({
-      where: { vendor_id: vendor_id },
+    // First try to find a vendor user
+    const vendorUser = await prisma.vendorUser.findFirst({
+      where: {
+        vendor_user_id: vendor_user_id
+      }
     });
 
-    if (!user) {
-      user = await prisma.vendorUser.findUnique({
-        where: { vendor_user_id: vendor_id },
-      });
-      role = 'vendor_user';
-    }
-
-    if (!user) {
+    if (!vendorUser) {
       return {
         status: 404,
         success: false,
         message: "User not found",
-        data: vendor_id,
+        data: vendor_user_id,
       };
     }
 
     // Verify current password
-    if (user.password !== currentPassword) {
+    const isValidPassword = await bcrypt.compare(currentPassword, vendorUser.password);
+    if (!isValidPassword) {
       return {
         status: 401,
         success: false,
@@ -447,18 +409,13 @@ export const handleChangePasswordVendor = async (
       };
     }
 
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
     // Update password
-    if (role === 'vendor') {
-      await prisma.vendor.update({
-        where: { vendor_id: vendor_id },
-        data: { password: newPassword },
-      });
-    } else {
-      await prisma.vendorUser.update({
-        where: { vendor_user_id: vendor_id },
-        data: { password: newPassword },
-      });
-    }
+    await prisma.vendorUser.update({
+      where: { vendor_user_id: vendor_user_id },
+      data: { password: hashedPassword },
+    });
 
     return {
       status: 200,
@@ -475,20 +432,17 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
     // Verify refresh token
     const decoded = jwt.verify(
       refreshToken,
-      process.env.RESET_TOKEN_SECRET || "refresh-secret"
-    ) as { vendor_id: string };
-
-    const blacklisted = await prisma.tokenBlacklist.findUnique({
-      where: { token: refreshToken },
-    });
-
-    if (blacklisted) {
-      return { status: 401, success: false, message: "Token has been revoked" };
-    }
+      process.env.REFRESH_TOKEN_SECRET!
+    ) as {
+      user_id: string;
+      vendor_id: string;
+      user_role: string;
+      type: string;
+    };
 
     // Get user
-    const user = await prisma.vendor.findUnique({
-      where: { vendor_id: decoded.vendor_id },
+    const user = await prisma.vendorUser.findUnique({
+      where: { vendor_user_id: decoded.user_id },
     });
 
     if (!user) {
@@ -496,9 +450,14 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
     }
     // Generate new access token
     const accessToken = jwt.sign(
-      { vendor_id: user.vendor_id, role: user.role },
-      process.env.JWT_SECRET || "access-secret",
-      { expiresIn: "15m" }
+      {
+        user_name: user.name,
+        user_id: user.vendor_user_id,
+        user_role: user.role,
+        type: 'VENDOR'
+      },
+      process.env.ACCESS_TOKEN_SECRET || "",
+      { expiresIn: "1d" }
     );
 
     return {
@@ -511,19 +470,3 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
     throw error;
   }
 };
-
-// export const handleLogout = async (token: string) => {
-//   try {
-//     // Add token to blacklist
-//     await prisma.tokenBlacklist.create({
-//       data: {
-//         token: token,
-//         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-//       }
-//     });
-
-//     return { status: 200, success: true, message: 'Logged out successfully' };
-//   } catch (error) {
-//     throw error;
-//   }
-// };

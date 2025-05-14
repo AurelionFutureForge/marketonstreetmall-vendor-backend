@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../../../../prisma/client/prismaClient';
 import { AppError } from './errorHanding';
+const dotenv = require('dotenv');
+dotenv.config();
 
 // Middleware to verify JWT token and attach user info to request
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,7 +15,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       return next(new AppError('No token provided', 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'access-secret') as any;
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as any;
     req.user = decoded;
     next();
   } catch (error) {
@@ -31,16 +33,16 @@ export const authenticateVendor = async (req: Request, res: Response, next: Next
       return next(new AppError('No token provided', 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'access-secret') as any;
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as any;
 
-    // Check if token is blacklisted
-    const blacklisted = await prisma.tokenBlacklist.findUnique({
-      where: { token }
-    });
+    // // // Check if token is blacklisted
+    // // const blacklisted = await prisma.tokenBlacklist.findUnique({
+    // //   where: { token }
+    // // });
 
-    if (blacklisted) {
-      return next(new AppError('Token has been revoked', 401));
-    }
+    // if (blacklisted) {
+    //   return next(new AppError('Token has been revoked', 401));
+    // }
 
     // Attach vendor info to request
     req.user = decoded;
@@ -60,16 +62,16 @@ export const authenticateSuperAdmin = async (req: Request, res: Response, next: 
       return next(new AppError('No token provided', 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'access-secret') as any;
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as any;
 
-    // Check if token is blacklisted
-    const blacklisted = await prisma.tokenBlacklist.findUnique({
-      where: { token }
-    });
+    // // Check if token is blacklisted
+    // const blacklisted = await prisma.tokenBlacklist.findUnique({
+    //   where: { token }
+    // });
 
-    if (blacklisted) {
-      return next(new AppError('Token has been revoked', 401));
-    }
+    // if (blacklisted) {
+    //   return next(new AppError('Token has been revoked', 401));
+    // }
 
     // Check if user is a superadmin
     if (!decoded.role || decoded.role !== 'SUPER_ADMIN') {

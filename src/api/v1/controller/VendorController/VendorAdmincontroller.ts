@@ -36,16 +36,6 @@ export const updateVendorProfile = async (req: Request, res: Response, next: Nex
   }
 };
 
-export const deleteVendor = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { vendor_id } = AuthenticatedUserSchema.parse(req.params);
-    const response = await VendorAdminService.deleteVendor(vendor_id);
-    sendResponse(res, response.status, response.success, response.message, response.data);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const updateBankDetails = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { vendor_id } = AuthenticatedUserSchema.parse(req.params);

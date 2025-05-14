@@ -12,10 +12,10 @@ export const getAllVendors = async (page: number = 1, limit: number = 10) => {
                 created_at: "desc",
             },
             select: {
-                name: true,
+                vendor_name: true,
                 business_name: true,
-                phone: true,
-                email: true,
+                vendor_phone: true,
+                vendor_email: true,
                 onboarding_completed: true,
                 commission_rate: true,
                 vendor_id: true,
@@ -45,28 +45,35 @@ export const getAllVendors = async (page: number = 1, limit: number = 10) => {
 
 export const getVendorDetails = async (vendor_id: string) => {
     try {
-        const vendor = await prisma.vendor.findUnique({
-            where: { vendor_id },
-            select: {
-                password: false,
-                created_at: true,
-                updated_at: true,
-                bank_details: true,
-                warehouse: true,
-                team: true,
-                onboarding_completed: true,
-                commission_rate: true,
-                phone: true,
-                email: true,
-                name: true,
-                business_name: true,
-                legal_name: true,
-                gstin: true,
-                pan: true,
-                role: true,
-                vendor_id: true,
-            }
-        });
+        // Execute both queries in parallel
+        const [vendor, vendorUser] = await Promise.all([
+            prisma.vendor.findUnique({
+                where: { vendor_id },
+                select: {
+                    created_at: true,
+                    updated_at: true,
+                    bank_details: true,
+                    warehouse: true,
+                    team: true,
+                    onboarding_completed: true,
+                    commission_rate: true,
+                    vendor_phone: true,
+                    vendor_email: true,
+                    vendor_name: true,
+                    business_name: true,
+                    legal_name: true,
+                    gstin: true,
+                    pan: true,
+                    vendor_id: true,
+                }
+            }),
+            prisma.vendorUser.findFirst({
+                where: { vendor_id },
+                select: {
+                    role: true,
+                }
+            })
+        ]);
 
         if (!vendor) {
             return {
@@ -80,7 +87,7 @@ export const getVendorDetails = async (vendor_id: string) => {
             status: 200,
             success: true,
             message: "Vendor details fetched successfully",
-            data: vendor,
+            data: { ...vendor, ...vendorUser },
         };
     } catch (error) {
         throw error;
@@ -121,7 +128,6 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
                 try {
                     const groupId = category.subcategory_groups[0]?.group_id;
 
-                    console.log(groupId);
                     if (groupId) {
                         const response = await axios.put(
                             `https://api.streetmallcommerce.com/v1/dashboard/categories-group/${groupId}`,
@@ -156,26 +162,26 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
         const updatedVendor = await prisma.vendor.update({
             where: { vendor_id },
             data: {
-                name: updateData.name,
+                vendor_name: updateData.name,
                 business_name: updateData.business_name,
                 legal_name: updateData.legal_name,
                 gstin: updateData.gstin || null,
                 pan: updateData.pan || null,
                 onboarding_completed: updateData.onboarding_completed || false,
                 commission_rate: updateData.commission_rate ?? 0,
-                phone: updateData.phone,
+                vendor_phone: updateData.phone,
                 updated_at: new Date(),
             },
             select: {
-                name: true,
+                vendor_name: true,
                 business_name: true,
                 legal_name: true,
                 gstin: true,
                 pan: true,
                 onboarding_completed: true,
                 commission_rate: true,
-                phone: true,
-                email: true,
+                vendor_phone: true,
+                vendor_email: true,
                 vendor_id: true,
             },
         });
@@ -185,66 +191,6 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
             success: true,
             message: "Vendor updated successfully",
             data: updatedVendor,
-        };
-    } catch (error) {
-        throw error;
-    }
-};
-
-export const deleteVendor = async (vendor_id: string) => {
-    try {
-        const vendor = await prisma.vendor.findUnique({
-            where: { vendor_id },
-            include: {
-                bank_details: true,
-                warehouse: true,
-                category: {
-                    include: {
-                        subcategory_groups: true
-                    }
-                },
-
-            }
-        });
-
-        if (!vendor) {
-            return {
-                status: 404,
-                success: false,
-                message: "Vendor not found",
-                data: null
-            };
-        }
-
-        if (vendor.bank_details) {
-            await prisma.bankDetail.delete({
-                where: { vendor_id }
-            });
-        }
-
-        if (vendor.warehouse) {
-            await prisma.warehouse.delete({
-                where: { vendor_id }
-            });
-        }
-
-        await prisma.vendorUser.deleteMany({
-            where: { vendor_id }
-        });
-
-        await prisma.category.deleteMany({
-            where: { vendor_id }
-        });
-
-        await prisma.vendor.delete({
-            where: { vendor_id },
-        });
-
-        return {
-            status: 200,
-            success: true,
-            message: "Vendor and all related data deleted successfully",
-            data: { vendor_id }
         };
     } catch (error) {
         throw error;
@@ -358,10 +304,10 @@ export const searchVendors = async (page: number = 1, limit: number = 10, search
                     created_at: "desc",
                 },
                 select: {
-                    name: true,
+                    vendor_name: true,
                     business_name: true,
-                    phone: true,
-                    email: true,
+                    vendor_phone: true,
+                    vendor_email: true,
                     onboarding_completed: true,
                     commission_rate: true,
                     vendor_id: true,
@@ -387,7 +333,6 @@ export const searchVendors = async (page: number = 1, limit: number = 10, search
             },
         };
     } catch (error) {
-        console.log(error);
         throw error;
     }
 };

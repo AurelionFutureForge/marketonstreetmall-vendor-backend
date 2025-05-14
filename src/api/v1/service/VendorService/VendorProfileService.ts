@@ -27,8 +27,11 @@ export const getVendorProfile = async (vendorId: string) => {
 
 export const getVendorUserProfile = async (vendorId: string) => {
   try {
-    const vendor = await prisma.vendorUser.findUnique({
-      where: { vendor_user_id: vendorId },
+    const vendor = await prisma.vendor.findUnique({
+      where: { vendor_id: vendorId },
+      include: {
+        warehouse: true,
+      },
     });
     if (!vendor) {
       return {
@@ -118,13 +121,13 @@ export const updateVendorProfile = async (vendorId: string, data: any) => {
     const updatedVendor = await prisma.vendor.update({
       where: { vendor_id: vendorId },
       data: {
-        name: data.name,
+        vendor_name: data.name,
         business_name: data.business_name,
         legal_name: data.legal_name,
         gstin: data.gstin || null,
         pan: data.pan || null,
         commission_rate: data.commission_rate ?? 0,
-        phone: data.phone,
+        vendor_phone: data.phone,
         updated_at: new Date(),
       },
     });

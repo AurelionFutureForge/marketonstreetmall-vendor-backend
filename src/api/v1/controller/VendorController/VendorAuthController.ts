@@ -25,20 +25,6 @@ export const loginController = async (req: Request, res: Response, next: NextFun
   }
 };
 
-export const verifyOtpController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { otp_id, otp } = VerifyOtpSchema.parse(req.body);
-    const response = await VendorAuthService.verifyOtp(otp_id, otp);
-    if (response.success) {
-      sendResponse(res, response.status, true, response.message, response.data);
-    } else {
-      sendResponse(res, response.status, false, response.message);
-    }
-  } catch (error) {
-    next(error)
-  }
-};
-
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const vendorData = VendorRegisterSchema.parse(req.body);
@@ -82,8 +68,8 @@ export const resetPasswordController = async (req: Request, res: Response, next:
 export const changePasswordController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { current_password, new_password } = ChangePasswordSchema.parse(req.body);
-    const { vendor_id } = AuthenticatedUserSchema.parse(req.user);
-    const response = await VendorAuthService.handleChangePasswordVendor(vendor_id, current_password, new_password);
+    const { vendor_user_id } = AuthenticatedUserSchema.parse(req.user);
+    const response = await VendorAuthService.handleChangePasswordVendor(vendor_user_id!, current_password, new_password);
     sendResponse(res, response.status, response.success, response.message);
   } catch (error) {
     next(error);

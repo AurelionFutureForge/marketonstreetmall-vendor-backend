@@ -10,10 +10,11 @@ import VendorAdminRouter from './VendorAdminRouter';
 const VendorRouter: Router = express.Router();
 
 VendorRouter.use("/auth", VendorAuthRouter);
+VendorRouter.use("/admin", VendorAdminRouter);
+
+VendorRouter.use("/user", VendorUserRoute);
 VendorRouter.use("/profile", VendorProfileRouter);
 VendorRouter.use("/bank", VendorBankRouter);
-VendorRouter.use("/user", VendorUserRoute);
 VendorRouter.use("/warehouse", VendorWarehouseRouter);
-VendorRouter.use("/admin", VendorAdminRouter);
 
 export default VendorRouter;
