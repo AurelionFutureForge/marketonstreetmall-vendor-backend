@@ -216,13 +216,23 @@ export const handleLoginVendor = async (email: string, password: string) => {
 
     // Generate tokens
     const accessToken = jwt.sign(
-      { vendor_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id, role: user.role },
+      { 
+        user_name: user.name,
+        user_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id,
+        user_role: user.role,
+        type: 'VENDOR'
+      },
       process.env.JWT_SECRET || "access-secret",
       { expiresIn: "1d" }
     );
 
     const refreshToken = jwt.sign(
-      { vendor_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id },
+      { 
+        user_name: user.name,
+        user_id: role === 'vendor_admin' ? user.vendor_id : user.vendor_user_id,
+        user_role: user.role,
+        type: 'VENDOR'
+      },
       process.env.RESET_TOKEN_SECRET || "refresh-secret",
       { expiresIn: "7d" }
     );
