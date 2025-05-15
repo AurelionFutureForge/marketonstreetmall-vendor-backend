@@ -210,7 +210,11 @@ export const handleLoginVendor = async (email: string, password: string) => {
         vendor: {
           include: {
             bank_details: true,
-            category: true,
+            category: {
+              include: {
+                subcategory_groups: true
+              }
+            },
             warehouse: true,
             documents: true
           }
@@ -240,6 +244,7 @@ export const handleLoginVendor = async (email: string, password: string) => {
       vendor_id: user.vendor_id || null,
       vendor_name: user.vendor.vendor_name || null
     }
+  
     // Generate tokens
     const accessToken = jwt.sign(
       payload,
@@ -259,11 +264,23 @@ export const handleLoginVendor = async (email: string, password: string) => {
       message: "Login successful",
       data: {
         user: {
+          vendor_id: user.vendor.vendor_id,
           vendor_user_id: user.vendor_user_id,
           name: user.name,
           email: user.email,
           role: user.role,
-          vendor: user.vendor
+          business_name: user.vendor.business_name,
+          legal_name: user.vendor.legal_name,
+          gstin: user.vendor.gstin,
+          pan: user.vendor.pan,
+          onboarding_completed: user.vendor.onboarding_completed,
+          phone: user.vendor.vendor_phone,
+          created_at: user.vendor.created_at,
+          updated_at: user.vendor.updated_at,
+          bank_details: user.vendor.bank_details,
+          category: user.vendor.category,
+          warehouse: user.vendor.warehouse,
+          documents: user.vendor.documents,
         },
         token_data: {
           access_token: accessToken,
