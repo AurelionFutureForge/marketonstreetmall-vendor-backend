@@ -210,11 +210,7 @@ export const handleLoginVendor = async (email: string, password: string) => {
         vendor: {
           include: {
             bank_details: true,
-            category: {
-              include: {
-                subcategory_groups: true
-              }
-            },
+            category: true,
             warehouse: true,
             documents: true
           }
@@ -235,6 +231,25 @@ export const handleLoginVendor = async (email: string, password: string) => {
     if (user.role === 'VENDOR_ADMIN' && !user.vendor?.onboarding_completed) {
       return { status: 401, message: "Vendor not onboarded" };
     }
+
+    // For each category, fetch only subcategory groups that contain the vendor's business name
+    const categoriesWithFilteredGroups = await Promise.all(
+      user.vendor.category.map(async (category) => {
+        const subcategoryGroups = await prisma.subcategoryGroup.findMany({
+          where: {
+            id: category.id,
+            name: {
+              contains: user.vendor.business_name
+            }
+          }
+        });
+        
+        return {
+          ...category,
+          subcategory_groups: subcategoryGroups
+        };
+      })
+    );
 
     const payload = {
       user_name: user.name,
@@ -278,7 +293,7 @@ export const handleLoginVendor = async (email: string, password: string) => {
           created_at: user.vendor.created_at,
           updated_at: user.vendor.updated_at,
           bank_details: user.vendor.bank_details,
-          category: user.vendor.category,
+          category: categoriesWithFilteredGroups,
           warehouse: user.vendor.warehouse,
           documents: user.vendor.documents,
         },
@@ -484,6 +499,81 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
       data: { accessToken },
     };
   } catch (error) {
+    throw error;
+  }
+};
+
+export const handleCreateWarehouse = async (
+  vendor_id: string,
+  warehouseData: {
+    service_token: string;
+    address_nickname: string;
+    address_details: {
+      street: string;
+      city: string;
+      state: string;
+      zipcode: string;
+      country: string;
+    };
+    contact_info: {
+      name: string;
+      phone: string;
+      email: string;
+      alt_phone?: string;
+    };
+    pickup_location: string;
+    comment?: string;
+  }
+) => {
+  try {
+    // First, create warehouse in microservice
+    const response = await axios.post(
+      'https://api.streetmallcommerce.com/v1/dashboard/warehouses/microservice',
+      warehouseData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    if (response.status !== 200 && response.status !== 201) {
+      throw new Error('Failed to create warehouse in microservice');
+    }
+
+    const microserviceWarehouse = response.data.data;
+
+    // Then create warehouse in our database
+    const warehouse = await prisma.warehouse.create({
+      data: {
+        warehouse_id: microserviceWarehouse.warehouse_id,
+        address: warehouseData.address_details.street,
+        city: warehouseData.address_details.city,
+        state: warehouseData.address_details.state,
+        country: warehouseData.address_details.country,
+        pincode: warehouseData.address_details.zipcode,
+        contact_person: warehouseData.contact_info.name,
+        contact_phone: warehouseData.contact_info.phone,
+        verification_status: 'PENDING',
+        is_primary: false,
+        vendor: {
+          connect: {
+            vendor_id: vendor_id
+          }
+        }
+      }
+    });
+
+    return {
+      status: 201,
+      success: true,
+      message: "Warehouse created successfully",
+      data: warehouse
+    };
+
+  } catch (error) {
+    console.error('Error creating warehouse:', error);
     throw error;
   }
 };
