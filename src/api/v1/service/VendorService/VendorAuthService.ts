@@ -475,6 +475,16 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
     // Get user
     const user = await prisma.vendorUser.findUnique({
       where: { vendor_user_id: decoded.user_id },
+      include: {
+        vendor: {
+          include: {
+            bank_details: true,
+            category: true,
+            warehouse: true,
+            documents: true
+          }
+        }
+      }
     });
 
     if (!user) {
@@ -486,17 +496,19 @@ export const handleRefreshTokenVendor = async (refreshToken: string) => {
         user_name: user.name,
         user_id: user.vendor_user_id,
         user_role: user.role,
-        type: 'VENDOR'
+        type: 'VENDOR',
+        vendor_id: user.vendor_id || null,
+        vendor_name: user.vendor.vendor_name || null
       },
-      process.env.ACCESS_TOKEN_SECRET || "",
-      { expiresIn: "1d" }
+      process.env.ACCESS_TOKEN_SECRET!,
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY! } as jwt.SignOptions
     );
 
     return {
       status: 200,
       success: true,
       message: "Token refreshed successfully",
-      data: { accessToken },
+      data: { access_token: accessToken },
     };
   } catch (error) {
     throw error;
