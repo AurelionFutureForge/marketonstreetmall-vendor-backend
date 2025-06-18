@@ -27,7 +27,7 @@ export const handleVendorRegister = async (vendorData: {
   business_name: string;
   legal_name: string;
   gstin?: string;
-  pan?: string;
+  pan?: string | null;
   commission_rate?: number;
   onboarding_completed?: boolean;
   email: string;
@@ -54,15 +54,26 @@ export const handleVendorRegister = async (vendorData: {
     }
 
     // For VENDOR_ADMIN, check if vendor exists with same details
+    const orConditions: Array<{ vendor_email?: string; gstin?: string; pan?: string }> = [
+      { vendor_email: vendorData.email }
+    ];
+
+    // Only check for GSTIN if it's provided (not null/undefined)
+    if (vendorData.gstin) {
+      orConditions.push({ gstin: vendorData.gstin });
+    }
+
+    // Only check for PAN if it's provided (not null/undefined)
+    if (vendorData.pan) {
+      orConditions.push({ pan: vendorData.pan });
+    }
     const existingVendor = await prisma.vendor.findFirst({
       where: {
-        OR: [
-          { vendor_email: vendorData.email },
-          { gstin: vendorData.gstin },
-          { pan: vendorData.pan },
-        ],
+        OR: orConditions,
       },
     });
+
+
 
     if (existingVendor) {
       return {
@@ -78,7 +89,7 @@ export const handleVendorRegister = async (vendorData: {
           business_name: vendorData.business_name,
           legal_name: vendorData.legal_name,
           gstin: vendorData.gstin,
-          pan: vendorData.pan,
+          pan: vendorData.pan ?? null,
           commission_rate: vendorData.commission_rate ?? 0,
           onboarding_completed: false,
           vendor_email: vendorData.email,
@@ -243,7 +254,7 @@ export const handleLoginVendor = async (email: string, password: string) => {
             }
           }
         });
-        
+
         return {
           ...category,
           subcategory_groups: subcategoryGroups
@@ -259,7 +270,7 @@ export const handleLoginVendor = async (email: string, password: string) => {
       vendor_id: user.vendor_id || null,
       vendor_name: user.vendor.vendor_name || null
     }
-  
+
     // Generate tokens
     const accessToken = jwt.sign(
       payload,
