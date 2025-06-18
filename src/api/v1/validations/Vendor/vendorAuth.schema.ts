@@ -11,7 +11,7 @@ export const VendorRegisterSchema = z.object({
   business_name: z.string().min(1, 'Business name is required'),
   legal_name: z.string().min(1, 'Legal name is required'),
   gstin: z.string().optional(), // Optional but should be valid if present
-  pan: z.string().optional(),
+  pan: z.string().optional().nullable(),
   commission_rate: z.number().default(0), // optional, defaulted to 0
   onboarding_completed: z.boolean().default(false), // optional
   email: z.string().email('Invalid email format'),
