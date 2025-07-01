@@ -95,7 +95,7 @@ export const getVendorDetails = async (vendor_id: string) => {
 };
 
 export const updateVendorProfile = async (vendor_id: string, updateData: any) => {
-    console.log(updateData);
+    console.log("Update Data:", updateData);
     try {
         // First check if email is being updated and validate uniqueness
         if (updateData.email) {
@@ -180,20 +180,25 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
             }));
         }
 
+        // Create update data object with only the fields that are present in updateData
+        const updateFields: any = {
+            updated_at: new Date()
+        };
+
+        // Only include fields that are present in updateData
+        if (updateData.name) updateFields.vendor_name = updateData.name;
+        if (updateData.business_name) updateFields.business_name = updateData.business_name;
+        if (updateData.legal_name) updateFields.legal_name = updateData.legal_name;
+        if ('gstin' in updateData) updateFields.gstin = updateData.gstin || null;
+        if ('pan' in updateData) updateFields.pan = updateData.pan || null;
+        if ('onboarding_completed' in updateData) updateFields.onboarding_completed = updateData.onboarding_completed;
+        if ('commission_rate' in updateData) updateFields.commission_rate = updateData.commission_rate;
+        if (updateData.phone) updateFields.vendor_phone = updateData.phone;
+        if (updateData.email) updateFields.vendor_email = updateData.email;
+
         const updatedVendor = await prisma.vendor.update({
             where: { vendor_id },
-            data: {
-                vendor_name: updateData.name,
-                business_name: updateData.business_name,
-                legal_name: updateData.legal_name,
-                gstin: updateData.gstin || null,
-                pan: updateData.pan || null,
-                onboarding_completed: updateData.onboarding_completed || false,
-                commission_rate: updateData.commission_rate ?? 0,
-                vendor_phone: updateData.phone,
-                vendor_email: updateData.email,
-                updated_at: new Date(),
-            },
+            data: updateFields,
             select: {
                 vendor_name: true,
                 business_name: true,
@@ -208,17 +213,18 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
             },
         });
 
-        // If email is updated, also update it in the VendorUser table
-        if (updateData.vendor_email) {
+        // If email or name is updated, also update it in the VendorUser table
+        if (updateData.email || updateData.name) {
+            const vendorUserUpdate: any = {};
+            if (updateData.email) vendorUserUpdate.email = updateData.email;
+            if (updateData.name) vendorUserUpdate.name = updateData.name;
+
             await prisma.vendorUser.updateMany({
                 where: {
                     vendor_id: vendor_id,
                     role: "VENDOR_ADMIN"
                 },
-                data: {
-                    email: updateData.email,
-                    name: updateData.name,
-                }
+                data: vendorUserUpdate
             });
         }
 
@@ -229,6 +235,7 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
             data: updatedVendor,
         };
     } catch (error) {
+        console.error("Error updating vendor profile:", error);
         throw error;
     }
 };
