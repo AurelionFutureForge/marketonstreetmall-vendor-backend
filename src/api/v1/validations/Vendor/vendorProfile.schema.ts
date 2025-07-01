@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 export const UpdateVendorProfileSchema = z.object({
-  vendor_name: z.string().min(1, "Name is required").optional(),
+  name: z.string().min(1, "Name is required").optional(),
   business_name: z.string().optional(),
   legal_name: z.string().optional(),
+  email: z.string().email("Invalid email format").optional(),
   gstin: z.string().optional().nullable(),
   pan: z.string().optional().nullable(),
   onboarding_completed: z.boolean().optional(),
