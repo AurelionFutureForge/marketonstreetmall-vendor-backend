@@ -95,7 +95,28 @@ export const getVendorDetails = async (vendor_id: string) => {
 };
 
 export const updateVendorProfile = async (vendor_id: string, updateData: any) => {
+    console.log(updateData);
     try {
+        // First check if email is being updated and validate uniqueness
+        if (updateData.email) {
+            const existingVendorWithEmail = await prisma.vendor.findFirst({
+                where: {
+                    vendor_email: updateData.email,
+                    NOT: {
+                        vendor_id: vendor_id
+                    }
+                }
+            });
+
+            if (existingVendorWithEmail) {
+                return {
+                    status: 400,
+                    success: false,
+                    message: "Email already exists for another vendor",
+                };
+            }
+        }
+
         const vendor = await prisma.vendor.findUnique({
             where: { vendor_id },
             include: {
@@ -170,6 +191,7 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
                 onboarding_completed: updateData.onboarding_completed || false,
                 commission_rate: updateData.commission_rate ?? 0,
                 vendor_phone: updateData.phone,
+                vendor_email: updateData.email,
                 updated_at: new Date(),
             },
             select: {
@@ -185,6 +207,20 @@ export const updateVendorProfile = async (vendor_id: string, updateData: any) =>
                 vendor_id: true,
             },
         });
+
+        // If email is updated, also update it in the VendorUser table
+        if (updateData.vendor_email) {
+            await prisma.vendorUser.updateMany({
+                where: {
+                    vendor_id: vendor_id,
+                    role: "VENDOR_ADMIN"
+                },
+                data: {
+                    email: updateData.email,
+                    name: updateData.name,
+                }
+            });
+        }
 
         return {
             status: 200,
